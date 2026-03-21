@@ -361,8 +361,25 @@ class FashionGallery {
       }
     ];
   }
+  /** Prefisso opzionale per asset statici (vedi __PORTFOLIO_CONFIG__.basePath nel README). */
+  getPortfolioAssetBase() {
+    const cfg =
+      (typeof window !== "undefined" && window.__PORTFOLIO_CONFIG__) || {};
+    const raw =
+      cfg.basePath != null
+        ? cfg.basePath
+        : typeof window !== "undefined"
+          ? window.__PORTFOLIO_BASE_PATH__
+          : "";
+    if (raw == null || String(raw).trim() === "") return "";
+    let s = String(raw).trim().replace(/\\/g, "/");
+    if (!s.endsWith("/")) s += "/";
+    return s;
+  }
   mediaProjectUrl(folder, file) {
-    return `media/projects/${folder}/${file}`;
+    const base = this.getPortfolioAssetBase();
+    const path = `media/projects/${folder}/${file}`;
+    return base ? `${base}${path}` : path;
   }
   /**
    * Local: raw è il nome file (string) o { file: "nome.jpg" }.

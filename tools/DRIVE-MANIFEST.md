@@ -11,7 +11,7 @@ La cartella condivisa ([portfolio rubina sito](https://drive.google.com/drive/fo
    - Esegui come: **Io**
    - Chi ha accesso: **Chiunque** (o “Chiunque su Internet”)
 5. Copia l’**URL** che termina con **`/exec`** (non `/dev`).
-6. In `dist/portfolio-data.js` imposta:
+6. In `portfolio-data.js` (root del repo) imposta:
    ```js
    driveManifestUrl: "https://script.google.com/macros/s/XXXX/exec"
    ```

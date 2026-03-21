@@ -1,5 +1,5 @@
 /**
- * Immagini: local → dist/media/projects | drive + manifest (vedi tools/DRIVE-MANIFEST.md).
+ * Immagini: local → media/projects (root repo) | drive + manifest (vedi tools/DRIVE-MANIFEST.md).
  * layout: "concept" — hero + griglia a destra.
  * layout: "horizontal-mixed" — NUDE: riga orizzontale scorrevole, card 1×1 e 4×4.
  * summary — descrizione breve in vista progetto.
@@ -8,6 +8,8 @@
 window.__PORTFOLIO_CONFIG__ = window.__PORTFOLIO_CONFIG__ || {
   imagesFrom: "local",
   useThumbnailsInGrid: true,
+  /** Solo se il sito non è servito dalla cartella che contiene `media/`: es. `"/mio-sito/"` */
+  basePath: "",
   driveManifestUrl:
     "https://script.google.com/macros/s/AKfycbzDPttz-8mlW-CgdxvfDr3O_-1Nn-YQhcpRZBt6MV8uVLAku0QEK0uXvayRghIDELm0/exec"
 };
