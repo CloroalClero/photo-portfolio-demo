@@ -1465,6 +1465,62 @@ body.zoom-mode .image-title-overlay {
   z-index: 10050;
 }
 
+/* Zoom: dopo un attimo la descrizione si alleggerisce e diventa scrollabile col dito */
+.image-slide-description-scroll {
+  width: 100%;
+  max-width: 28rem;
+  position: relative;
+}
+
+body.zoom-mode .image-title-overlay.image-title-overlay--relaxed {
+  pointer-events: none;
+}
+
+body.zoom-mode
+  .image-title-overlay.image-title-overlay--relaxed
+  .image-slide-description-scroll {
+  pointer-events: auto;
+  max-height: min(32vh, 220px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+  padding: 0.35rem 0.5rem 0.5rem;
+  margin: 0 -0.5rem;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.22);
+  box-shadow: 0 -1px 0 rgba(255, 255, 255, 0.06) inset;
+}
+
+body.zoom-mode
+  .image-title-overlay.image-title-overlay--relaxed
+  .image-slide-description {
+  clip-path: none;
+  overflow: visible;
+  min-height: 0;
+}
+
+body.zoom-mode
+  .image-title-overlay.image-title-overlay--relaxed
+  .description-line {
+  color: rgba(255, 255, 255, 0.68);
+}
+
+body.zoom-mode
+  .image-title-overlay.image-title-overlay--relaxed
+  .image-slide-number
+  span {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+body.zoom-mode
+  .image-title-overlay.image-title-overlay--relaxed
+  .image-slide-title
+  h1 {
+  color: rgba(255, 255, 255, 0.92);
+}
+
 .image-slide-number {
   position: relative;
   width: 100%;
@@ -1543,6 +1599,12 @@ body.zoom-mode .image-title-overlay {
   margin: 0;
   padding: 0;
   overflow: hidden;
+  transition: color 0.45s ease;
+}
+
+body.zoom-mode .image-slide-number span,
+body.zoom-mode .image-slide-title h1 {
+  transition: color 0.45s ease;
 }
 
 

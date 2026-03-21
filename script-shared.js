@@ -123,6 +123,7 @@ class FashionGallery {
     this._zoomNavTouchEndBound = (e) => this.onZoomNavTouchEnd(e);
     this._zoomNavTouchStartX = null;
     this._zoomNavTouchStartY = null;
+    this._zoomDescRelaxTimer = null;
     /** Vista serie su mobile: colonna unica, celle larghe (feed) */
     this.mobileProjectFeedActive = false;
     // Initialize sound system
@@ -3206,6 +3207,33 @@ class FashionGallery {
 
     return overlay;
   }
+  clearZoomTitleDescriptionRelax() {
+    if (this._zoomDescRelaxTimer) {
+      clearTimeout(this._zoomDescRelaxTimer);
+      this._zoomDescRelaxTimer = null;
+    }
+    if (this.imageTitleOverlay) {
+      this.imageTitleOverlay.classList.remove("image-title-overlay--relaxed");
+    }
+  }
+  scheduleZoomTitleDescriptionRelax() {
+    if (this._zoomDescRelaxTimer) {
+      clearTimeout(this._zoomDescRelaxTimer);
+      this._zoomDescRelaxTimer = null;
+    }
+    if (!this.imageTitleOverlay) return;
+    const cfg =
+      (typeof window !== "undefined" && window.__PORTFOLIO_CONFIG__) || {};
+    const delay = Math.max(
+      1200,
+      Math.min(30000, Number(cfg.zoomDescriptionRelaxDelayMs) || 4500)
+    );
+    this._zoomDescRelaxTimer = setTimeout(() => {
+      this._zoomDescRelaxTimer = null;
+      if (!this.zoomState.isActive || !this.imageTitleOverlay) return;
+      this.imageTitleOverlay.classList.add("image-title-overlay--relaxed");
+    }, delay);
+  }
   /** Dopo Flip.fit (o fallback fullscreen): titoli e overlay zoom. */
   completeZoomOpenUI(selectedItemData) {
     this.updateTitleOverlayForItem(selectedItemData);
@@ -3258,6 +3286,7 @@ class FashionGallery {
       });
     }
     this.preloadZoomNeighborImages(selectedItemData);
+    this.scheduleZoomTitleDescriptionRelax();
   }
   /** Item della vista corrente su cui ha senso avanzare nello zoom (ordine di griglia / serie). */
   getZoomNavigableGridItems() {
@@ -3283,6 +3312,7 @@ class FashionGallery {
     this.swapZoomToItem(items[j]);
   }
   refreshZoomTitleForZoomItem(itemData) {
+    this.clearZoomTitleDescriptionRelax();
     gsap.killTweensOf("#imageSlideNumber span, #imageSlideTitle h1");
     if (this.descriptionLines && this.descriptionLines.length) {
       gsap.killTweensOf(this.descriptionLines);
@@ -3321,6 +3351,7 @@ class FashionGallery {
         }
       );
     }
+    this.scheduleZoomTitleDescriptionRelax();
   }
   clearZoomOverlayHoldBackground(overlayEl) {
     if (!overlayEl || !overlayEl.style) return;
@@ -3530,6 +3561,7 @@ class FashionGallery {
   }
   enterZoomMode(selectedItemData) {
     if (this.zoomState.isActive) return;
+    this.clearZoomTitleDescriptionRelax();
     this.zoomState.isActive = true;
     this.zoomState.selectedItem = selectedItemData;
     this.pauseAllGridItemDrift();
@@ -3644,6 +3676,7 @@ class FashionGallery {
     )
       return;
     this.clearZoomPrefetchTimers();
+    this.clearZoomTitleDescriptionRelax();
     this.clearZoomOverlayHoldBackground(this.zoomState.scalingOverlay);
     this.soundSystem.play("close");
     this.detachZoomNavigationControls();

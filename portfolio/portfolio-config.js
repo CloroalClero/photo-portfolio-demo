@@ -8,6 +8,8 @@ window.__PORTFOLIO_CONFIG__ = window.__PORTFOLIO_CONFIG__ || {
   useLocalMediaForZoom: true,
   /** Quante foto zoom precaricare per lato (±). Valori alti + richieste in parallelo saturano il browser. */
   zoomPrefetchNeighborRadius: 4,
+  /** Dopo quanti ms in zoom la descrizione si compatta (trasparenza + scroll col dito). */
+  zoomDescriptionRelaxDelayMs: 4500,
   useThumbnailsInGrid: true,
   basePath: "",
   driveManifestUrl:

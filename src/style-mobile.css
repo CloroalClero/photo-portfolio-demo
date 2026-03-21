@@ -270,6 +270,12 @@
     max-width: none;
   }
 
+  body.zoom-mode
+    .image-title-overlay.image-title-overlay--relaxed
+    .image-slide-description-scroll {
+    max-height: min(38vh, 280px);
+  }
+
   body.zoom-mode .close-button {
     top: max(0.75rem, env(safe-area-inset-top, 0px));
     right: max(0.75rem, env(safe-area-inset-right, 0px));
