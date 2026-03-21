@@ -1,0 +1,2155 @@
+@import url("https://fonts.cdnfonts.com/css/thegoodmonolith");
+
+@font-face {
+  font-family: "PPNeueMontreal";
+  src: url("https://assets.codepen.io/7558/PPNeueMontreal-Variable.woff2")
+    format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+}
+
+:root {
+  --spacing-base: 1rem;
+  --spacing-md: 1.5rem;
+  --spacing-lg: 2rem;
+  --color-text: #ffffff;
+  --color-text-dim: 0.6;
+  --transition-medium: 0.3s ease;
+  --font-size-base: 14px;
+  --chrome-bar-height: calc(3.85rem + env(safe-area-inset-top, 0px));
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none;
+}
+
+body {
+  font-family: "PPNeueMontreal", sans-serif;
+  background: #000;
+  overflow: hidden;
+  height: 100vh;
+  cursor: default;
+}
+
+body.dragging {
+  cursor: default;
+}
+
+body.zoom-mode {
+  cursor: default;
+}
+
+/* Loading iniziale: stesso linguaggio del portfolio (nero, chrome blur, tipografia) */
+#homeLoadingOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  background-color: #000;
+  display: flex;
+  flex-direction: column;
+  font-family: "PPNeueMontreal", sans-serif;
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity 0.55s ease,
+    visibility 0.55s ease;
+}
+
+#homeLoadingOverlay.home-loading--exiting {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+#homeLoadingOverlay .home-loading__vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(
+      ellipse 85% 65% at 50% 42%,
+      transparent 0%,
+      rgba(0, 0, 0, 0.35) 100%
+    ),
+    linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.75) 0%,
+      transparent 35%,
+      transparent 65%,
+      rgba(0, 0, 0, 0.5) 100%
+    );
+}
+
+#homeLoadingOverlay .home-loading__chrome-top {
+  flex-shrink: 0;
+  height: var(--chrome-bar-height);
+  background: rgba(0, 0, 0, 0.22);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+          backdrop-filter: blur(14px) saturate(1.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+  position: relative;
+  z-index: 2;
+}
+
+#homeLoadingOverlay .home-loading__inner {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(1.25rem, 4vh, 2rem);
+  padding: 1rem clamp(1rem, 4vw, 2rem);
+  min-height: 0;
+  position: relative;
+  z-index: 2;
+}
+
+#homeLoadingOverlay .home-loading__title {
+  margin: 0;
+  font-family: "PPNeueMontreal", sans-serif;
+  font-size: clamp(0.95rem, 2.8vw, 1.05rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: rgba(255, 255, 255, 0.92);
+  text-align: center;
+  text-shadow: 0 1px 24px rgba(0, 0, 0, 0.6);
+}
+
+#homeLoadingOverlay .home-loading__chrome-bottom {
+  flex-shrink: 0;
+  min-height: calc(2.65rem + env(safe-area-inset-bottom, 0px));
+  padding: 0.45rem 1.15rem calc(0.65rem + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.2);
+  -webkit-backdrop-filter: blur(12px) saturate(1.1);
+          backdrop-filter: blur(12px) saturate(1.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  position: relative;
+  z-index: 2;
+}
+
+#homeLoadingOverlay .home-loading__meta {
+  margin: 0;
+  font-family: "TheGoodMonolith", monospace;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.52);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
+}
+
+#homeLoadingOverlay .home-loading__wrap {
+  position: relative;
+  z-index: 1;
+  perspective: 2200px;
+  padding: 12px clamp(0.5rem, 4vw, 48px) 8px;
+}
+
+#homeLoadingOverlay .home-loading__pos {
+  width: 304px;
+  max-width: 92vw;
+  margin: 0 auto;
+}
+
+#homeLoadingOverlay .home-loading__pos::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+#homeLoadingOverlay .home-loading__cube:nth-child(1),
+#homeLoadingOverlay .home-loading__cube:nth-child(1) div {
+  z-index: 1;
+  animation-delay: 0.08333s;
+}
+
+#homeLoadingOverlay .home-loading__cube:nth-child(2),
+#homeLoadingOverlay .home-loading__cube:nth-child(2) div {
+  z-index: 2;
+  animation-delay: 0.16667s;
+}
+
+#homeLoadingOverlay .home-loading__cube:nth-child(3),
+#homeLoadingOverlay .home-loading__cube:nth-child(3) div {
+  z-index: 3;
+  animation-delay: 0.25s;
+}
+
+#homeLoadingOverlay .home-loading__cube:nth-child(4),
+#homeLoadingOverlay .home-loading__cube:nth-child(4) div {
+  z-index: 4;
+  animation-delay: 0.33333s;
+}
+
+#homeLoadingOverlay .home-loading__cube:nth-child(5),
+#homeLoadingOverlay .home-loading__cube:nth-child(5) div {
+  z-index: 5;
+  animation-delay: 0.41667s;
+}
+
+#homeLoadingOverlay .home-loading__cube:nth-child(6),
+#homeLoadingOverlay .home-loading__cube:nth-child(6) div {
+  z-index: 6;
+  animation-delay: 0.5s;
+}
+
+#homeLoadingOverlay .home-loading__cube:nth-child(7),
+#homeLoadingOverlay .home-loading__cube:nth-child(7) div {
+  z-index: 7;
+  animation-delay: 0.58333s;
+}
+
+#homeLoadingOverlay .home-loading__cube:nth-child(8),
+#homeLoadingOverlay .home-loading__cube:nth-child(8) div {
+  z-index: 8;
+  animation-delay: 0.66667s;
+}
+
+#homeLoadingOverlay .home-loading__cube {
+  width: 30px;
+  height: 150px;
+  position: relative;
+  margin-right: 8px;
+  float: left;
+  transform-style: preserve-3d;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.45);
+  animation-name: home-loading-anim-cube;
+  animation-duration: 1s;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+#homeLoadingOverlay .home-loading__cube div {
+  position: absolute;
+  display: block;
+  width: 30px;
+  height: 150px;
+}
+
+#homeLoadingOverlay .home-loading__center {
+  width: 30px;
+  box-shadow:
+    0 0 4px rgba(0, 0, 0, 0.5),
+    inset 0 1px rgba(255, 255, 255, 0.06);
+  animation-name: home-loading-anim-center;
+  animation-duration: 1s;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+#homeLoadingOverlay .home-loading__bottom {
+  width: 30px;
+  height: 10px;
+  bottom: 0;
+  transform: rotateX(90deg);
+  transform-origin: center bottom;
+  animation-name: home-loading-anim-bottom;
+  animation-duration: 1s;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+#homeLoadingOverlay .home-loading__left {
+  left: 0;
+  transform: rotateY(90deg);
+  transform-origin: left center;
+  animation-name: home-loading-anim-side;
+  animation-duration: 1s;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+#homeLoadingOverlay .home-loading__right {
+  right: 0;
+  transform: rotateY(-90deg);
+  transform-origin: right center;
+  animation-name: home-loading-anim-side;
+  animation-duration: 1s;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+#homeLoadingOverlay .home-loading__left,
+#homeLoadingOverlay .home-loading__right {
+  background-color: #101010;
+  background-image: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.07),
+    rgba(255, 255, 255, 0)
+  );
+}
+
+#homeLoadingOverlay .home-loading__center {
+  background-color: #141414;
+  background-image: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.1),
+    rgba(255, 255, 255, 0)
+  );
+}
+
+#homeLoadingOverlay .home-loading__bottom {
+  background-color: #0a0a0a;
+  background-image: linear-gradient(
+    to top,
+    rgba(255, 255, 255, 0.06),
+    rgba(255, 255, 255, 0)
+  );
+}
+
+@keyframes home-loading-anim-cube {
+  30% {
+    transform: translateZ(150px) translateX(0) translateY(0) rotateX(3deg)
+      rotateY(0deg) rotateZ(0deg);
+    box-shadow:
+      0 0 28px rgba(0, 0, 0, 0.65),
+      0 14px 28px rgba(0, 0, 0, 0.45),
+      0 0 20px rgba(255, 255, 255, 0.04);
+  }
+  100% {
+    transform: translateZ(0) rotateZ(0deg);
+    box-shadow:
+      0 0 12px rgba(0, 0, 0, 0.4),
+      0 0 0 0 transparent;
+  }
+}
+
+@keyframes home-loading-anim-side {
+  30% {
+    width: 100px;
+    background-color: #0c0c0c;
+  }
+  95% {
+    width: 10px;
+  }
+}
+
+@keyframes home-loading-anim-bottom {
+  30% {
+    height: 100px;
+  }
+  95% {
+    height: 10px;
+  }
+}
+
+@keyframes home-loading-anim-center {
+  20% {
+    background-color: #262626;
+    box-shadow:
+      0 0 16px rgba(255, 255, 255, 0.06),
+      inset 0 1px rgba(255, 255, 255, 0.14);
+  }
+  65% {
+    box-shadow:
+      0 0 4px rgba(255, 255, 255, 0.02),
+      inset 0 1px rgba(255, 255, 255, 0.08);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #homeLoadingOverlay .home-loading__cube,
+  #homeLoadingOverlay .home-loading__cube div {
+    animation-duration: 1.8s;
+    animation-timing-function: ease-in-out;
+  }
+}
+
+/* Header e footer: barre leggere, massima area per le foto */
+.header,
+.footer {
+  position: fixed;
+  left: 0;
+  width: 100vw;
+  z-index: 10000;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.header {
+  top: 0;
+  padding: calc(0.63rem + env(safe-area-inset-top, 0px)) 1.15rem 0.63rem 1.32rem;
+}
+
+.footer {
+  bottom: 0;
+  padding: 0.5rem 1.15rem 0.85rem;
+}
+
+.header > *,
+.footer > * {
+  pointer-events: auto;
+}
+
+.header-bar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.75rem 1.15rem;
+  max-width: 100%;
+  background: rgba(0, 0, 0, 0.22);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+          backdrop-filter: blur(14px) saturate(1.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+}
+
+.header-bar__left {
+  justify-self: start;
+  min-width: 0;
+}
+
+.header-bar__nav {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  justify-self: center;
+  gap: 0.4rem 1.75rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* ===== Mobile: barra, logo, trigger touch, pannelli a tutta larghezza ===== */
+
+
+/* Schermi stretti / touch: niente nome espanso accanto al logo (resta l’aria-label) */
+
+
+@media (hover: none) {
+  .logo-container:hover .logo-letter--r {
+    transform: translate(0, -50%);
+  }
+
+  .logo-container:hover .logo-letter--s {
+    transform: translate(0, -50%);
+  }
+
+  .logo-container:hover .logo-fullname {
+    max-width: 0;
+    opacity: 0;
+    margin-left: 0;
+  }
+}
+
+/* Pannelli: trigger come header originale (+Menu, +Studio, …) */
+.header-panel {
+  position: relative;
+}
+
+.header-panel__trigger {
+  list-style: none;
+  cursor: pointer;
+  font-family: "PPNeueMontreal", sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01rem;
+  text-transform: none;
+  color: #fff;
+  padding: 0.15em 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.05em;
+  transition: opacity 0.25s ease, color 0.25s ease;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none;
+}
+
+/* Prefisso + condiviso tra trigger barra e titoli nei pannelli */
+.header-panel__trigger-plus,
+.header-panel__h-plus {
+  font-family: "TheGoodMonolith", monospace;
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  opacity: 0.88;
+  flex-shrink: 0;
+}
+
+.header-panel__trigger-plus {
+  margin-right: 0.08em;
+}
+
+.header-panel__trigger::-webkit-details-marker {
+  display: none;
+}
+
+.header-panel__trigger::marker {
+  content: "";
+}
+
+.header-panel__trigger:hover {
+  opacity: 0.72;
+  color: #fff;
+}
+
+.header-panel[open] > .header-panel__trigger {
+  opacity: 1;
+  -webkit-text-decoration: underline solid currentColor 1px;
+          text-decoration: underline solid currentColor 1px;
+  text-underline-offset: 0.28em;
+}
+
+/* About: link in header (stesso linguaggio del trigger +) */
+.header-about-link {
+  font-family: "PPNeueMontreal", sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01rem;
+  color: #fff;
+  padding: 0.15em 0;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.05em;
+  transition: opacity 0.25s ease, color 0.25s ease;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none;
+}
+
+.header-about-link:hover {
+  opacity: 0.72;
+  color: #fff;
+}
+
+.header-about-link[aria-current="page"] {
+  opacity: 1;
+  -webkit-text-decoration: underline solid currentColor 1px;
+          text-decoration: underline solid currentColor 1px;
+  text-underline-offset: 0.28em;
+}
+
+/* Sezione About a tutta pagina */
+.about-page {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  background: #000;
+  padding: calc(var(--chrome-bar-height) + 1.25rem) 1.35rem
+    calc(4.5rem + env(safe-area-inset-bottom, 0px));
+}
+
+.about-page__inner {
+  max-width: 38rem;
+  margin: 0 auto;
+}
+
+.about-page__head {
+  margin-bottom: 1.75rem;
+}
+
+.about-page__kicker {
+  font-family: "TheGoodMonolith", monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.48);
+  margin: 0 0 0.5rem;
+}
+
+.about-page__title {
+  font-family: "PPNeueMontreal", sans-serif;
+  font-size: clamp(1.35rem, 4vw, 1.75rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: rgba(255, 255, 255, 0.96);
+  margin: 0;
+  line-height: 1.15;
+}
+
+.about-page__body {
+  font-family: "PPNeueMontreal", sans-serif;
+  font-size: clamp(0.95rem, 2.2vw, 1.05rem);
+  font-weight: 400;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.about-page__p {
+  margin: 0 0 1.15em;
+}
+
+.about-page__p:last-of-type {
+  margin-bottom: 0.85em;
+}
+
+.about-page__cite {
+  font-style: italic;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.about-page__quote {
+  margin: 0;
+  padding: 1rem 0 0 1.1rem;
+  border-left: 2px solid rgba(255, 255, 255, 0.18);
+  font-size: clamp(0.92rem, 2vw, 1rem);
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.about-page__quote p {
+  margin: 0;
+}
+
+body.about-open #viewport,
+body.project-concept-active #viewport,
+body.project-horizontal-active #viewport,
+body.project-editorial-active #viewport {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.header-panel__drawer {
+  position: fixed;
+  top: var(--chrome-bar-height);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9998;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.22s ease;
+}
+
+.header-panel[open] .header-panel__drawer {
+  pointer-events: auto;
+  opacity: 1;
+}
+
+.header-panel__backdrop {
+  position: absolute;
+  inset: 0;
+  border: none;
+  padding: 0;
+  margin: 0;
+  background: rgba(0, 0, 0, 0.42);
+  cursor: default;
+}
+
+.header-panel__content {
+  position: absolute;
+  top: 0.65rem;
+  right: 1rem;
+  width: min(22rem, calc(100vw - 2rem));
+  max-height: min(56vh, 28rem);
+  overflow-y: auto;
+  padding: 1.35rem 1.5rem 1.5rem;
+  background: rgba(12, 12, 12, 0.94);
+  -webkit-backdrop-filter: blur(20px);
+          backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.2em;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.55);
+  -webkit-animation: panelDrop 0.28s cubic-bezier(0.34, 1.2, 0.64, 1) both;
+          animation: panelDrop 0.28s cubic-bezier(0.34, 1.2, 0.64, 1) both;
+}
+
+.header-panel__h {
+  font-family: "PPNeueMontreal", sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01rem;
+  color: #fff;
+  margin: 0 0 0.75rem;
+  line-height: 1.2;
+  display: flex;
+  align-items: baseline;
+  gap: 0.08em;
+}
+
+.header-panel__block .header-panel__lead {
+  margin: 0;
+}
+
+.header-panel__menu-head {
+  margin-bottom: 1rem;
+}
+
+.header-panel__menu-head .header-panel__h {
+  margin-bottom: 0.65rem;
+}
+
+.header-panel__sub {
+  font-family: "PPNeueMontreal", sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.52);
+  margin: 0;
+  max-width: 36rem;
+}
+
+.header-panel__sub em {
+  font-style: normal;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.header-panel__content--projects .projects-nav {
+  margin-top: 0.15rem;
+}
+
+.header-panel__content--projects .projects-nav a {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+.header-panel__content--projects .projects-nav .projects-nav__section-heading {
+  margin: 0.7rem 0 0.32rem;
+  padding: 0;
+  list-style: none;
+  pointer-events: none;
+}
+
+.header-panel__content--projects
+  .projects-nav
+  .projects-nav__section-heading--first {
+  margin-top: 0.45rem;
+}
+
+.header-panel__content--projects .projects-nav .projects-nav__section-label {
+  font-family: "TheGoodMonolith", monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+  display: block;
+  line-height: 1.35;
+}
+
+.header-panel__content--social {
+  width: min(22rem, calc(100vw - 2rem));
+}
+
+.header-panel__content--social .header-panel__h {
+  margin-bottom: 0.85rem;
+}
+
+.header-panel__content--social .header-panel__h--sub {
+  margin-top: 1.25rem;
+}
+
+@-webkit-keyframes panelDrop {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes panelDrop {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.header-panel--projects .header-panel__content {
+  right: auto;
+  left: 50%;
+  width: min(42rem, calc(100vw - 2rem));
+  max-height: min(58vh, 30rem);
+  -webkit-animation: panelDropCenter 0.28s cubic-bezier(0.34, 1.2, 0.64, 1) both;
+          animation: panelDropCenter 0.28s cubic-bezier(0.34, 1.2, 0.64, 1) both;
+}
+
+@-webkit-keyframes panelDropCenter {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -8px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+@keyframes panelDropCenter {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -8px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+/* Social: card centrata sotto il pulsante (stessa logica di Progetti desktop) */
+.header-panel--social .header-panel__content {
+  right: auto;
+  left: 50%;
+  -webkit-animation: panelDropCenter 0.28s cubic-bezier(0.34, 1.2, 0.64, 1) both;
+          animation: panelDropCenter 0.28s cubic-bezier(0.34, 1.2, 0.64, 1) both;
+}
+
+
+
+.header-panel__lead {
+  font-family: "PPNeueMontreal", sans-serif;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.78);
+  margin: 0 0 1rem;
+}
+
+.header-panel__kicker {
+  font-family: "TheGoodMonolith", monospace;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+  margin: 0 0 0.45rem;
+}
+
+.header-panel__text {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.92);
+  margin: 0 0 0.2rem;
+}
+
+.header-panel__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.header-panel__list li {
+  margin-bottom: 0.25rem;
+}
+
+.header-panel__content a {
+  font-size: var(--font-size-base);
+  font-weight: 700;
+}
+
+.header-panel__list--social li,
+.header-panel__list--projects li {
+  margin-bottom: 0.35rem;
+}
+
+/* Footer ridotto */
+.footer--lite {
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.footer__inner {
+  pointer-events: none;
+}
+
+.footer__line {
+  font-family: "TheGoodMonolith", monospace;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.58);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
+  margin: 0;
+  transition: color 0.35s ease, opacity 0.35s ease;
+}
+
+.footer--lite:hover .footer__line {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+/* ===== LOGO COMPONENT ===== */
+.logo-container {
+  margin-bottom: var(--spacing-md);
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  height: 1.725rem;
+  position: relative;
+  cursor: pointer;
+  overflow: visible;
+}
+
+.header-bar .logo-container {
+  margin-bottom: 0;
+}
+
+.logo-mark {
+  position: relative;
+  width: 3.55rem;
+  height: 100%;
+  flex-shrink: 0;
+}
+
+.logo-letter {
+  position: absolute;
+  top: 50%;
+  font-family: "PPNeueMontreal", sans-serif;
+  font-size: 1.38rem;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: var(--color-text);
+  transition: transform var(--transition-medium);
+  z-index: 2;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none;
+  pointer-events: none;
+}
+
+.logo-letter--r {
+  left: 0;
+  transform: translate(0, -50%);
+}
+
+.logo-letter--s {
+  left: 0.71rem;
+  transform: translate(0, -50%);
+  mix-blend-mode: exclusion;
+}
+
+.logo-container:hover .logo-letter--r,
+.logo-container:focus-visible .logo-letter--r {
+  transform: translate(-0.52rem, -50%);
+}
+
+.logo-container:hover .logo-letter--s,
+.logo-container:focus-visible .logo-letter--s {
+  transform: translate(0.52rem, -50%);
+}
+
+.logo-fullname {
+  display: block;
+  max-width: 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  font-family: "PPNeueMontreal", sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.725rem;
+  color: rgba(255, 255, 255, 0.92);
+  opacity: 0;
+  transition: max-width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    opacity 0.35s ease,
+    margin 0.35s ease;
+  pointer-events: none;
+}
+
+.logo-container:hover .logo-fullname,
+.logo-container:focus-visible .logo-fullname {
+  max-width: 15rem;
+  opacity: 1;
+  margin-left: 0.4rem;
+}
+
+/* Key hint styling */
+.key-hint {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+  border: 1px solid var(--color-text);
+  border-radius: 3px;
+  font-size: 12px;
+  margin: 0 3px;
+  min-width: 20px;
+  height: 20px;
+}
+
+/* Footer text styling */
+.footer p {
+  font-family: "TheGoodMonolith", monospace;
+}
+
+/* Global link styling */
+a {
+  position: relative;
+  cursor: pointer;
+  color: var(--color-text);
+  padding: 0;
+  display: inline-block;
+  z-index: 1;
+  text-decoration: none;
+  font-size: var(--font-size-base);
+  opacity: 1;
+  transition: color var(--transition-medium);
+  font-weight: 700;
+}
+
+a::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 100%;
+  background-color: var(--color-text);
+  z-index: -1;
+  transition: width 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+a:hover::after {
+  width: 100%;
+}
+
+a:hover {
+  color: black;
+  mix-blend-mode: difference;
+  opacity: 1;
+}
+
+p {
+  display: block;
+  text-decoration: none;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01rem;
+  -webkit-font-smoothing: antialiased;
+}
+
+ul {
+  list-style: none;
+}
+
+h3 {
+  font-size: 14px;
+  margin-bottom: var(--spacing-base);
+  font-weight: 600;
+  color: #fff;
+}
+
+.projects-nav:empty {
+  display: none;
+}
+
+/* Stesso linguaggio dei link globali (+Social): lista verticale, barra ::after, hover difference */
+.header-panel__content--projects .projects-nav a.project-link-active::after {
+  width: 100%;
+}
+
+.header-panel__content--projects .projects-nav a.project-link-active {
+  color: black;
+  mix-blend-mode: difference;
+  opacity: 1;
+}
+
+.viewport {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  z-index: 1;
+  opacity: 0;
+}
+
+/*
+ * Vista progetto su mobile: scroll + griglia centrata nello spazio utile (sotto header).
+ * display:flex + margin:auto sul canvas centra orizzontale e verticale quando c’è spazio libero;
+ * se la griglia è più grande dello schermo, resta scrollabile con margini simmetrici.
+ */
+
+
+.canvas-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+  isolation: isolate;
+}
+
+/* Contiene la griglia a dimensioni logiche; su mobile progetto GSAP scala solo questo, il wrapper ha size già scalata → centratura reale. */
+.canvas-scale-inner {
+  position: relative;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+.grid-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+body.project-zoom-enabled .grid-item {
+  cursor: pointer;
+}
+
+body.project-zoom-enabled .grid-item--project-blurb {
+  cursor: default;
+}
+
+.grid-item--project-lead {
+  z-index: 2;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 18px 48px rgba(0, 0, 0, 0.35);
+}
+
+.grid-item--project-lead .grid-item__vignette {
+  opacity: 0.92;
+}
+
+.grid-item--project-blurb {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: stretch;
+  box-sizing: border-box;
+  background: linear-gradient(
+    165deg,
+    #101010 0%,
+    #0a0a0a 45%,
+    #070707 100%
+  );
+  color: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.grid-item__project-copy {
+  width: 100%;
+  max-width: 38rem;
+  margin: 0;
+  padding: clamp(0.85rem, 2vw, 1.5rem) clamp(0.9rem, 2.2vw, 1.65rem);
+  box-sizing: border-box;
+}
+
+/* Testo a destra della copertina */
+.grid-item--project-blurb--aside .grid-item__project-copy {
+  max-width: none;
+  padding-left: clamp(1rem, 2.4vw, 1.85rem);
+  padding-right: clamp(0.85rem, 1.8vw, 1.35rem);
+  border-left: 1px solid rgba(255, 255, 255, 0.07);
+  margin-left: 0;
+  min-height: 0;
+}
+
+.grid-item--project-blurb--aside {
+  justify-content: center;
+}
+
+/* Fascia sotto (3 colonne): testo centrato, misura riga comoda */
+.grid-item--project-blurb--band .grid-item__project-copy {
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  max-width: min(42rem, 100%);
+  padding: clamp(1rem, 2.2vw, 1.65rem) clamp(1rem, 3vw, 2rem);
+}
+
+.grid-item--project-blurb--band .grid-item__project-title {
+  text-wrap: balance;
+}
+
+/* Pila 2×2 sotto copertina (2 col): stessa larghezza percepita della foto sopra */
+.grid-item--project-blurb--stack .grid-item__project-copy {
+  padding: clamp(1rem, 2.5vw, 1.85rem);
+  max-width: 36rem;
+}
+
+.grid-item__project-title {
+  font-family: "PPNeueMontreal", sans-serif;
+  font-size: clamp(1rem, 1.9vw, 1.42rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  margin: 0 0 0.55rem;
+  line-height: 1.18;
+}
+
+.grid-item--project-blurb--band .grid-item__project-title {
+  margin-bottom: 0.5rem;
+}
+
+.grid-item__project-summary {
+  font-family: "PPNeueMontreal", sans-serif;
+  font-size: clamp(0.8rem, 1.35vw, 1.02rem);
+  font-weight: 300;
+  line-height: 1.55;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.68);
+  max-width: 55ch;
+}
+
+.grid-item__project-summary--after {
+  margin-top: 0.85em;
+}
+
+.grid-item--project-blurb--aside .grid-item__project-summary {
+  max-width: none;
+}
+
+.grid-item--project-blurb--band .grid-item__project-summary {
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 48ch;
+}
+
+/* --- Vista singolo progetto (griglia standard): rifiniture responsive --- */
+
+
+
+
+
+
+.grid-item {
+  position: absolute;
+  width: 320px;
+  height: 320px;
+  background: #000;
+  cursor: default;
+  overflow: hidden;
+  will-change: transform, opacity;
+  z-index: 1;
+  opacity: 1;
+  transition: opacity 0.6s ease;
+}
+
+.grid-item__viewport {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.grid-item__track {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+  will-change: transform;
+}
+
+/* Due slide reali: riduce drasticamente nodi img rispetto a N foto per progetto */
+.grid-item__track--duplex {
+  width: 200%;
+}
+
+.grid-item__track--duplex .grid-item__slide {
+  flex: 0 0 50%;
+  width: 50%;
+  height: 100%;
+  min-width: 0;
+}
+
+.grid-item__slide {
+  flex: 0 0 100%;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+}
+
+/* Vignetta scura + blur morbido ai lati (sopra le foto) */
+.grid-item__vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: inherit;
+  box-shadow:
+    inset 0 0 100px rgba(0, 0, 0, 0.32),
+    inset 0 0 48px rgba(0, 0, 0, 0.18);
+}
+
+.grid-item__vignette::before,
+.grid-item__vignette::after {
+  content: "";
+  position: absolute;
+  top: -5%;
+  bottom: -5%;
+  width: 38%;
+  max-width: 128px;
+  -webkit-backdrop-filter: blur(16px) saturate(1.15);
+          backdrop-filter: blur(16px) saturate(1.15);
+}
+
+.grid-item__vignette::before {
+  left: 0;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 0.55) 42%,
+    transparent 100%
+  );
+          mask-image: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 0.55) 42%,
+    transparent 100%
+  );
+}
+
+.grid-item__vignette::after {
+  right: 0;
+  -webkit-mask-image: linear-gradient(
+    to left,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 0.55) 42%,
+    transparent 100%
+  );
+          mask-image: linear-gradient(
+    to left,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 0.55) 42%,
+    transparent 100%
+  );
+}
+
+/* Serie / progetto: niente velo scuro sulle singole celle (solo home “tutte le foto”) */
+body.project-zoom-enabled .grid-item__vignette {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+.grid-item.out-of-view {
+  opacity: 0.1;
+}
+
+body.project-zoom-enabled .grid-item.out-of-view {
+  opacity: 1 !important;
+}
+
+.grid-item.selected {
+  z-index: 2 !important;
+}
+
+.grid-item img,
+.grid-item__slide img {
+  width: 100%;
+  height: 100%;
+  -o-object-fit: cover;
+     object-fit: cover;
+  display: block;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none;
+  pointer-events: none;
+}
+
+/* Split Screen Layout */
+.split-screen-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  z-index: 2;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.split-screen-container.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.split-left {
+  position: relative;
+  width: 50vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.split-right {
+  position: relative;
+  width: 50vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1;
+  cursor: pointer;
+}
+
+/*
+ * Zoom mobile: split a tutto schermo solo con body.zoom-mode (inset assoluti, niente flex/grid ambigui).
+ */
+
+
+/* Image target - BEHIND the scaling image */
+.zoom-target {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+/* Titoli zoom: in basso a sinistra (come concept), fuori dallo split nel DOM così lo z-index vale */
+.image-title-overlay {
+  position: fixed;
+  bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
+  left: max(1rem, env(safe-area-inset-left, 0px));
+  top: auto;
+  right: auto;
+  width: min(28rem, calc(50vw - 2.25rem));
+  max-width: calc(50vw - 2.25rem);
+  transform: none;
+  color: white;
+  z-index: 5;
+  opacity: 0;
+  pointer-events: none;
+  text-align: left;
+  -webkit-filter: drop-shadow(0 2px 14px rgba(0, 0, 0, 0.55));
+          filter: drop-shadow(0 2px 14px rgba(0, 0, 0, 0.55));
+}
+
+body.zoom-mode .split-screen-container {
+  z-index: 10040 !important;
+}
+
+body.zoom-mode .scaling-image-overlay {
+  z-index: 10045 !important;
+}
+
+/* Footer a z-index 10000: sopra la fascia NUDE; nascosto come per about */
+body.project-horizontal-active .footer,
+body.project-concept-active .footer,
+body.project-editorial-active .footer {
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+body.zoom-mode .image-title-overlay {
+  z-index: 10050;
+}
+
+.image-slide-number {
+  position: relative;
+  width: 100%;
+  max-width: 28rem;
+  height: 20px;
+  margin-bottom: 0.5em;
+  -webkit-clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
+          clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
+  overflow: hidden;
+}
+
+.image-slide-number span {
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: white;
+  font-family: "TheGoodMonolith", monospace;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.5;
+  transform: translateY(0px);
+  will-change: transform;
+  margin: 0;
+  padding: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.image-slide-title {
+  position: relative;
+  width: 100%;
+  max-width: 28rem;
+  height: 60px;
+  margin-bottom: 1em;
+  -webkit-clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
+          clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
+  overflow: hidden;
+}
+
+.image-slide-title h1 {
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: white;
+  font-family: "PPNeueMontreal", sans-serif;
+  font-size: 48px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  transform: translateY(0px);
+  will-change: transform;
+  margin: 0;
+  padding: 0;
+}
+
+.image-slide-description {
+  position: relative;
+  width: 100%;
+  max-width: 28rem;
+  min-height: 80px;
+  -webkit-clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
+          clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
+  overflow: hidden;
+}
+
+.description-line {
+  position: relative;
+  display: block;
+  color: rgba(255, 255, 255, 0.8);
+  font-family: "PPNeueMontreal", sans-serif;
+  font-size: 16px;
+  font-weight: 300;
+  line-height: 1.4;
+  transform: translateY(0px);
+  will-change: transform;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+
+
+/* Hide placeholder when active */
+.split-screen-container.active .zoom-target::before {
+  display: none;
+}
+
+.zoom-target::before {
+  content: "IMAGE TARGET";
+  color: rgba(255, 255, 255, 0.5);
+  font-family: "TheGoodMonolith", monospace;
+  font-size: 0.75em;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+/* Simple 64px white arrow button */
+.close-button {
+  position: fixed;
+  top: 50%;
+  right: 20px;
+  width: 64px;
+  height: 64px;
+  background: none;
+  border: none;
+  border-color: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(40px, -50%);
+}
+
+.close-button.active {
+  pointer-events: all;
+}
+
+body.zoom-mode .close-button {
+  z-index: 10050;
+}
+
+.close-button:hover {
+  opacity: 0.7;
+}
+
+.close-button svg {
+  width: 64px;
+  height: 64px;
+  transform: rotate(180deg);
+}
+
+/* Scaling image overlay */
+.scaling-image-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 3;
+  pointer-events: none;
+  will-change: transform;
+  opacity: 1 !important;
+}
+
+.scaling-image-overlay img {
+  width: 100%;
+  height: 100%;
+  -o-object-fit: cover;
+     object-fit: cover;
+  display: block;
+}
+
+/* Vignetta globale: spenta (mix-blend/gradient sopra le foto); sfondo resta body */
+.page-vignette-container {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+.page-vignette-extreme {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  mix-blend-mode: overlay;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.9) 0%,
+    rgba(0, 0, 0, 0.5) 20%,
+    transparent 40%
+  );
+}
+
+/* --- Vista singolo progetto (hero + griglia concept) --- */
+.project-concept {
+  position: fixed;
+  top: var(--chrome-bar-height);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 8000;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  background: #fff;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.project-concept[hidden] {
+  display: none !important;
+}
+
+.project-concept__hero {
+  position: relative;
+  flex: 0 0 44%;
+  max-width: 44%;
+  min-width: 0;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  display: block;
+  cursor: pointer;
+  overflow: hidden;
+  background: #0a0a0a;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.project-concept__hero:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.85);
+  outline-offset: -2px;
+}
+
+.project-concept__hero-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  filter: grayscale(1);
+  pointer-events: none;
+}
+
+.project-concept__hero-gradient {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.72) 0%,
+    rgba(0, 0, 0, 0.2) 38%,
+    transparent 62%
+  );
+}
+
+.project-concept__hero-copy {
+  position: absolute;
+  left: clamp(1rem, 3vw, 1.75rem);
+  bottom: clamp(1rem, 3vw, 2rem);
+  right: clamp(0.75rem, 2vw, 1.25rem);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.project-concept__num {
+  margin: 0 0 0.35rem;
+  font-family: "TheGoodMonolith", monospace;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.project-concept__name {
+  margin: 0 0 0.4rem;
+  font-family: "PPNeueMontreal", sans-serif;
+  font-size: clamp(1.35rem, 2.4vw, 2.35rem);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.05;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+.project-concept__meta {
+  margin: 0;
+  font-family: "PPNeueMontreal", sans-serif;
+  font-size: 13px;
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.project-concept__summary {
+  margin: 0.65rem 0 0;
+  font-family: "PPNeueMontreal", sans-serif;
+  font-size: clamp(12px, 1.35vw, 14px);
+  font-weight: 300;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.78);
+  max-width: 28em;
+}
+
+.project-concept__summary[hidden] {
+  display: none !important;
+}
+
+.project-concept__grid-wrap {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: clamp(0.65rem, 1.2vw, 1rem);
+  box-sizing: border-box;
+  background: #fff;
+}
+
+.project-concept__grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: clamp(0.5rem, 1vw, 0.85rem);
+  align-content: start;
+}
+
+.project-concept__card {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  border: none;
+  display: block;
+  cursor: pointer;
+  overflow: hidden;
+  background: #e8e8e8;
+  border-radius: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.project-concept__card:focus-visible {
+  outline: 2px solid rgba(0, 0, 0, 0.35);
+  outline-offset: 2px;
+}
+
+.project-concept__card--portrait {
+  grid-column: span 2;
+  aspect-ratio: 2 / 3;
+}
+
+.project-concept__card--landscape {
+  grid-column: span 3;
+  aspect-ratio: 3 / 2;
+}
+
+.project-concept__card--landscape-wide {
+  grid-column: span 6;
+  aspect-ratio: 2 / 1;
+}
+
+.project-concept__card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+
+
+/* --- NUDE (N.3): riga orizzontale scorrevole, card 1×1 e 4×4 (in unità griglia) --- */
+.project-h {
+  position: fixed;
+  top: var(--chrome-bar-height);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 8000;
+  display: flex;
+  flex-direction: column;
+  background: #060606;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.project-h[hidden] {
+  display: none !important;
+}
+
+.project-h__head {
+  flex-shrink: 0;
+  padding: 0.55rem 1.1rem 0.65rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.project-h__kicker {
+  margin: 0 0 0.2rem;
+  font-family: "TheGoodMonolith", monospace;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.project-h__title {
+  margin: 0 0 0.25rem;
+  font-family: "PPNeueMontreal", sans-serif;
+  font-size: clamp(1.05rem, 2.2vw, 1.45rem);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.project-h__summary {
+  margin: 0;
+  font-family: "PPNeueMontreal", sans-serif;
+  font-size: clamp(0.78rem, 1.4vw, 0.92rem);
+  font-weight: 300;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.58);
+  max-width: 40rem;
+}
+
+.project-h__scroll {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: row;
+  justify-content: safe center;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+  overscroll-behavior-x: contain;
+  overscroll-behavior-y: none;
+  touch-action: pan-x;
+}
+
+.project-h__scroll::-webkit-scrollbar {
+  height: 8px;
+}
+
+.project-h__scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 4px;
+}
+
+.project-h__track {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: var(--project-h-gap, 12px);
+  padding: 0.85rem 1.25rem 1rem;
+  width: max-content;
+  max-width: none;
+  --row-h: min(
+    clamp(200px, 36vh, 400px),
+    calc(100vh - var(--chrome-bar-height) - 5.75rem)
+  );
+  height: var(--row-h);
+  max-height: 100%;
+  box-sizing: border-box;
+  --g: var(--project-h-gap, 12px);
+}
+
+.project-h-card {
+  position: relative;
+  flex-shrink: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  cursor: pointer;
+  overflow: hidden;
+  background: #141414;
+  border-radius: 2px;
+  scroll-snap-align: start;
+  -webkit-tap-highlight-color: transparent;
+  flex-grow: 0;
+  contain: layout style;
+  box-sizing: border-box;
+}
+
+.project-h-card:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.5);
+  outline-offset: 2px;
+}
+
+/* Piccole: sempre più larghe che alte (≈ 16:9) */
+.project-h-card--1x1 {
+  width: calc(var(--row-h) * 16 / 9);
+  height: var(--row-h);
+  min-width: calc(var(--row-h) * 16 / 9);
+  max-height: var(--row-h);
+}
+
+/* Grandi: panorama sulla stessa riga (≈ 2.35× l’altezza) */
+.project-h-card--4x4 {
+  width: min(calc(var(--row-h) * 2.35), 92vw);
+  height: var(--row-h);
+  min-width: min(calc(var(--row-h) * 2.2), 88vw);
+  max-height: var(--row-h);
+}
+
+.project-h-card img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  pointer-events: none;
+}
+
+body.project-horizontal-active .project-h-card {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+body.project-zoom-enabled .project-h-card {
+  cursor: pointer;
+}
+
+/* --- Vista progetto editoriale (titolo + testo + foto ai lati) --- */
+.project-editorial {
+  position: fixed;
+  top: var(--chrome-bar-height, 56px);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 8500;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  background: #080808;
+  box-sizing: border-box;
+}
+
+.project-editorial[hidden] {
+  display: none !important;
+}
+
+.project-editorial__scroll {
+  display: grid;
+  grid-template-columns:
+    minmax(10.5rem, 1.05fr)
+    min(40rem, 92vw)
+    minmax(10.5rem, 1.05fr);
+  gap: clamp(1rem, 2.5vw, 2.25rem);
+  padding: clamp(1.5rem, 3vw, 2.75rem) clamp(0.85rem, 3vw, 2.5rem)
+    clamp(2.5rem, 5vh, 4rem);
+  max-width: 100%;
+  box-sizing: border-box;
+  align-items: start;
+}
+
+.project-editorial__side {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.75rem, 1.5vw, 1.25rem);
+  min-width: 0;
+}
+
+.project-editorial__side--left {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.project-editorial__main {
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+  padding-bottom: 0.5rem;
+}
+
+.project-editorial__side--right {
+  grid-column: 3;
+  grid-row: 1;
+}
+
+.project-editorial__mobile-gallery {
+  display: none;
+}
+
+/* Ultima immagine: blocco conclusivo a tutta larghezza (es. fine serie) */
+.project-editorial__finale {
+  grid-column: 1 / -1;
+  width: 100%;
+  max-width: min(1320px, 96vw);
+  margin: clamp(2.25rem, 5.5vw, 4.5rem) auto 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.project-editorial__card--finale {
+  width: 100%;
+  min-height: min(88vh, 1040px);
+  max-height: min(96vh, 1180px);
+  border-radius: 5px;
+  background: #0c0c0c;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.1),
+    0 28px 80px rgba(0, 0, 0, 0.65),
+    0 0 120px rgba(0, 0, 0, 0.35);
+}
+
+.project-editorial__card--finale img {
+  object-fit: contain;
+  object-position: center;
+}
+
+.project-editorial__card--finale:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.55);
+  outline-offset: 4px;
+}
+
+.project-editorial__kicker {
+  font-family: "TheGoodMonolith", monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.42);
+  margin: 0 0 0.65rem;
+}
+
+.project-editorial__title {
+  font-family: "PPNeueMontreal", sans-serif;
+  font-size: clamp(2rem, 5.5vw, 3.25rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: rgba(255, 255, 255, 0.96);
+  margin: 0 0 clamp(1rem, 2vw, 1.75rem);
+  text-wrap: balance;
+}
+
+.project-editorial__article {
+  font-family: "PPNeueMontreal", sans-serif;
+}
+
+.project-editorial__p {
+  margin: 0;
+  font-size: clamp(0.88rem, 1.2vw, 1.02rem);
+  font-weight: 300;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.7);
+  max-width: min(40rem, 100%);
+  white-space: pre-line;
+}
+
+.project-editorial__p--after {
+  margin-top: 1em;
+}
+
+.project-editorial__card {
+  position: relative;
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  cursor: pointer;
+  overflow: hidden;
+  background: #121212;
+  border-radius: 3px;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06);
+  -webkit-tap-highlight-color: transparent;
+  flex-shrink: 0;
+}
+
+.project-editorial__card:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.45);
+  outline-offset: 2px;
+}
+
+.project-editorial__card--portrait {
+  aspect-ratio: 3 / 4;
+}
+
+.project-editorial__card--landscape {
+  aspect-ratio: 4 / 3;
+}
+
+.project-editorial__card--landscape-wide {
+  aspect-ratio: 16 / 9;
+}
+
+.project-editorial__card img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  pointer-events: none;
+}
+
+body.project-editorial-active .project-editorial__card {
+  cursor: pointer;
+}
+

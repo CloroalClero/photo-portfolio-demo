@@ -1,28 +1,69 @@
 // Register GSAP plugins
 gsap.registerPlugin(CustomEase, Flip);
 
-const PROJECT_BLURBS = {
-  "anca-edward": "Ritratti di coppia in ambiente naturale.",
-  "binge-drinking": "Serie in allestimento.",
-  "concerti-ernia": "Live e atmosfera dal palco.",
-  "dj-set": "Serie in allestimento.",
-  florentina: "Ritratti e corpo — serie personale.",
-  "gallipoli-day": "Gallipoli alla luce del giorno.",
-  "gallipoli-night": "Gallipoli dopo il tramonto.",
-  "l-isola": "Fuerteventura — paesaggio e presenze.",
-  "laurea-ame": "La giornata della laurea.",
-  "moda-jump": "Studio e movimento.",
-  "moda-shooting": "Editoriale e look.",
-  nude: "Studio — forma e luce.",
-  parigi: "Strada, dettagli, città.",
-  "taboo-shooting": "Concept — location e still life."
-};
+/** Drift casuale delle card e “formation wave” in griglia (false = griglia ferma). */
+const ENABLE_GRID_CARD_DRIFT = false;
+
+/**
+ * Breakpoint allineato a style-mobile.css (max-width: 900px).
+ * script-mobile.js / script-desktop.js impostano __PF_IS_MOBILE_LAYOUT__ prima del bundle.
+ */
+function pfMobileLayout() {
+  if (typeof window.__PF_IS_MOBILE_LAYOUT__ === "boolean") {
+    return window.__PF_IS_MOBILE_LAYOUT__;
+  }
+  return typeof window.matchMedia === "function"
+    ? window.matchMedia("(max-width: 900px)").matches
+    : window.innerWidth <= 900;
+}
+
+/**
+ * Allinea __PORTFOLIO_PROJECTS__ a __PORTFOLIO_PROJECT_ORDER__ (N.1… come da registry).
+ * Progetti non listati in ORDER restano in coda (es. voci solo da manifest Drive).
+ */
+function reorderPortfolioProjectsToCanonicalOrder() {
+  const order = window.__PORTFOLIO_PROJECT_ORDER__;
+  const list = window.__PORTFOLIO_PROJECTS__;
+  if (!Array.isArray(order) || order.length === 0) return;
+  if (!Array.isArray(list) || list.length === 0) return;
+  const byId = Object.create(null);
+  for (let i = 0; i < list.length; i++) {
+    const p = list[i];
+    if (p && p.id != null) byId[String(p.id)] = p;
+  }
+  const next = [];
+  for (let i = 0; i < order.length; i++) {
+    const id = String(order[i]);
+    const p = byId[id];
+    if (p) {
+      next.push(p);
+      delete byId[id];
+    }
+  }
+  const extra = Object.keys(byId).sort();
+  for (let i = 0; i < extra.length; i++) {
+    next.push(byId[extra[i]]);
+  }
+  window.__PORTFOLIO_PROJECTS__ = next;
+}
+
+/** Base path URL per `data.js` / `mobile.css` del progetto: `portfolio/projects/<categoria>/<id>`. */
+function portfolioProjectDataDir(projectId) {
+  const key = String(projectId).replace(/[^a-zA-Z0-9_-]/g, "");
+  if (!key) return "";
+  const map = window.__PORTFOLIO_PROJECT_PATH_BY_ID__;
+  const rel = map && map[key];
+  return rel
+    ? `portfolio/projects/${rel}`
+    : `portfolio/projects/${key}`;
+}
 
 class FashionGallery {
   constructor() {
     // DOM elements
     this.viewport = document.getElementById("viewport");
     this.canvasWrapper = document.getElementById("canvasWrapper");
+    this.canvasScaleInner = document.getElementById("canvasScaleInner");
     this.gridContainer = document.getElementById("gridContainer");
     this.splitScreenContainer = document.getElementById("splitScreenContainer");
     this.imageTitleOverlay = document.getElementById("imageTitleOverlay");
@@ -36,6 +77,11 @@ class FashionGallery {
     this.conceptHeroItemData = null;
     this.projectHorizontalEl = document.getElementById("projectHorizontalView");
     this.projectHorizontalTrack = document.getElementById("projectHorizontalTrack");
+    this.projectEditorialEl = document.getElementById("projectEditorialView");
+    this.projectEditorialLeft = document.getElementById("projectEditorialLeft");
+    this.projectEditorialRight = document.getElementById("projectEditorialRight");
+    this.projectEditorialMobileGallery =
+      document.getElementById("projectEditorialMobileGallery");
     // Create custom eases
     this.customEase = CustomEase.create("smooth", ".87,0,.13,1");
     this.centerEase = CustomEase.create("center", ".25,.46,.45,.94");
@@ -65,6 +111,8 @@ class FashionGallery {
     };
     this.draggable = null;
     this.viewportObserver = null;
+    /** Vista serie su mobile: colonna unica, celle larghe (feed) */
+    this.mobileProjectFeedActive = false;
     // Initialize sound system
     this.initSoundSystem();
     this.activeProjectId = null;
@@ -190,6 +238,13 @@ class FashionGallery {
   }
   initImageData() {
     this.catalog = [];
+    if (
+      typeof window !== "undefined" &&
+      Array.isArray(window.__PORTFOLIO_PROJECTS__) &&
+      window.__PORTFOLIO_PROJECTS__.length > 0
+    ) {
+      reorderPortfolioProjectsToCanonicalOrder();
+    }
     this.useLocalPortfolio =
       typeof window !== "undefined" &&
       Array.isArray(window.__PORTFOLIO_PROJECTS__) &&
@@ -422,21 +477,106 @@ class FashionGallery {
     const url = this.mediaProjectUrl(project.folder, file);
     return { url, fullImageUrl: url, file };
   }
+  /** GSAP scale/translate: sul nodo interno se c’è, altrimenti sul wrapper (retrocompatibile). */
+  getCanvasTransformTarget() {
+    return this.canvasScaleInner || this.canvasWrapper;
+  }
+  /**
+   * Mobile + progetto: wrapper = dimensioni già moltiplicate per zoom (box visivo),
+   * inner = griglia logica; così margin:auto centra davvero le foto, non un rettangolo vuoto.
+   */
+  applyCanvasLayoutSizing() {
+    if (!this.canvasWrapper || this.gridDimensions.width == null) return;
+    const gw = this.gridDimensions.width;
+    const gh = this.gridDimensions.height;
+    const z = this.config.currentZoom;
+    const mobileProj = this.isMobileProjectCanvasScrollLayout();
+
+    if (this.canvasScaleInner) {
+      this.canvasScaleInner.style.width = `${gw}px`;
+      this.canvasScaleInner.style.height = `${gh}px`;
+    }
+    if (this.canvasScaleInner && mobileProj) {
+      this.canvasWrapper.style.width = `${gw * z}px`;
+      this.canvasWrapper.style.height = `${gh * z}px`;
+    } else {
+      this.canvasWrapper.style.width = `${gw}px`;
+      this.canvasWrapper.style.height = `${gh}px`;
+    }
+  }
   getDisplayItems() {
     if (!this.useLocalPortfolio) return [];
     if (!this.activeProjectId) return this.catalog;
     const pid = String(this.activeProjectId);
     return this.catalog.filter((e) => String(e.projectId) === pid);
   }
+  /** Mobile + griglia standard progetto: layout a colonna (no concept / NUDE strip). */
+  mobileProjectFeedContext() {
+    return (
+      this.useLocalPortfolio &&
+      this.isProjectFilterActive() &&
+      !this.isProjectConceptLayoutActive() &&
+      !this.isProjectHorizontalMixedActive() &&
+      pfMobileLayout()
+    );
+  }
+  getMobileFeedCellSize() {
+    const vw = typeof window !== "undefined" ? window.innerWidth : 400;
+    const pad = 28;
+    return Math.max(300, Math.min(560, Math.round(vw - pad * 2)));
+  }
+  layoutCellSize() {
+    return this.mobileProjectFeedActive
+      ? this.getMobileFeedCellSize()
+      : this.config.itemSize;
+  }
+  swapProjectMobileStylesheet(projectId) {
+    document
+      .querySelectorAll("link[data-project-mobile-css]")
+      .forEach((el) => el.remove());
+    if (!projectId || !pfMobileLayout()) return;
+    const id = String(projectId).replace(/[^a-zA-Z0-9_-]/g, "");
+    if (!id) return;
+    const base = portfolioProjectDataDir(projectId);
+    if (!base) return;
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = `${base}/mobile.css`;
+    link.setAttribute("data-project-mobile-css", id);
+    link.onerror = () => link.remove();
+    document.head.appendChild(link);
+  }
   getDisplayItemsForGrid() {
     if (this.useLocalPortfolio) {
       const list = this.getDisplayItems();
       if (this.isProjectFilterActive()) {
-        const n = list.length;
-        this.config.cols = this.getProjectViewColumnCount(n);
+        const sorted = [...list].sort(
+          (a, b) => (a.indexInProject ?? 0) - (b.indexInProject ?? 0)
+        );
+        const n = sorted.length;
+        this.mobileProjectFeedActive = this.mobileProjectFeedContext();
+        if (this.mobileProjectFeedActive) {
+          this.config.cols = 1;
+        } else {
+          this.config.cols = this.getProjectViewColumnCount(n);
+        }
+        if (
+          !this.isProjectConceptLayoutActive() &&
+          !this.isProjectHorizontalMixedActive()
+        ) {
+          const { rows } = this.computeGridPlacementsProject(
+            sorted,
+            this.config.cols
+          );
+          this.config.currentZoom = this.computeProjectViewFitZoom(
+            this.config.cols,
+            rows
+          );
+        }
         this.config.rows = Math.max(1, Math.ceil(n / this.config.cols) || 1);
-        return list;
+        return sorted;
       }
+      this.config.currentZoom = 0.6;
       this.config.cols = 12;
       this.config.rows = Math.max(
         1,
@@ -464,7 +604,7 @@ class FashionGallery {
    * Pixel width/height di una card che occupa spanCols×spanRows celle (gap tra celle incluso).
    */
   getItemSpanPixels(spanCols, spanRows, gap = this.config.currentGap) {
-    const s = this.config.itemSize;
+    const s = this.layoutCellSize();
     return {
       w: spanCols * s + (spanCols - 1) * gap,
       h: spanRows * s + (spanRows - 1) * gap
@@ -474,7 +614,7 @@ class FashionGallery {
     const sc = itemData.spanCols || 1;
     const sr = itemData.spanRows || 1;
     const { w, h } = this.getItemSpanPixels(sc, sr, gap);
-    const s = this.config.itemSize;
+    const s = this.layoutCellSize();
     itemData.pixelWidth = w;
     itemData.pixelHeight = h;
     itemData.baseX = itemData.col * (s + gap);
@@ -490,14 +630,16 @@ class FashionGallery {
    */
   getProjectViewColumnCount(n) {
     if (n <= 1) return 1;
-    const zoom = this.config.currentZoom || 0.6;
-    const gap = this.calculateGapForZoom(zoom);
-    const cellPx = (this.config.itemSize + gap) * zoom;
     const vw =
       typeof window !== "undefined" ? window.innerWidth : 1100;
+    const s = this.config.itemSize;
+    /* Stima colonne senza dipendere dallo zoom attuale: assume zoom fit ~0.28–0.45 su mobile. */
+    const refZ = 0.38;
+    const gap = this.calculateGapForZoom(refZ);
+    const cellScreen = (s + gap) * refZ;
     const maxByViewport = Math.max(
       1,
-      Math.min(10, Math.floor((vw * 0.9) / Math.max(1, cellPx)))
+      Math.min(10, Math.floor((vw * 0.92) / Math.max(1, cellScreen)))
     );
     const byCount =
       n <= 4 ? Math.min(n, 2) : n <= 9 ? 3 : n <= 16 ? 4 : n <= 25 ? 5 : 6;
@@ -507,24 +649,84 @@ class FashionGallery {
       maxByViewport,
       Math.max(1, Math.max(byCount, Math.min(bySqrt, 8)))
     );
-    /* Prefer 4+ colonne se c’è spazio: header progetto foto|testo affiancati, non fascia stretta. */
-    if (cols === 3 && maxByViewport >= 4 && n >= 4) {
+    /* Desktop largo: preferisci aside (≥4 col) se entra in viewport stimata a zoom moderato. */
+    const refZDesk = 0.58;
+    const gapD = this.calculateGapForZoom(refZDesk);
+    const maxDesk = Math.max(
+      1,
+      Math.min(10, Math.floor((vw * 0.92) / ((s + gapD) * refZDesk)))
+    );
+    if (cols === 3 && maxDesk >= 4 && n >= 4) {
       cols = 4;
+    }
+    /* Mobile: più colonne = meno righe → griglia che entra meglio in altezza (scroll orizz. se serve). */
+    if (vw <= 640 && n >= 8) {
+      cols = Math.max(cols, Math.min(4, maxByViewport, n));
     }
     return cols;
   }
   /**
-   * Testo breve serie: da `summary` in __PORTFOLIO_PROJECTS__ o da PROJECT_BLURBS.
+   * Zoom iniziale in vista singolo progetto (griglia standard) così lead + blurb + thumbs entrano nel viewport.
+   */
+  computeProjectViewFitZoom(cols, rows) {
+    const c = Math.max(1, cols);
+    const r = Math.max(1, rows);
+    const vw =
+      typeof window !== "undefined" ? window.innerWidth : 1100;
+    let vh =
+      typeof window !== "undefined" ? window.innerHeight : 800;
+    if (typeof window !== "undefined" && window.visualViewport) {
+      vh = window.visualViewport.height;
+    }
+    const s = this.layoutCellSize();
+    const marginX = 24;
+    const chromeY = vw < 700 ? 100 : 88;
+    const availW = Math.max(200, vw - marginX * 2);
+    const availH = Math.max(220, vh - chromeY);
+    const isNarrow = pfMobileLayout();
+    const candidates = [
+      0.92, 0.86, 0.8, 0.74, 0.68, 0.64, 0.6, 0.56, 0.52, 0.48, 0.44, 0.4,
+      0.38, 0.36, 0.34, 0.32, 0.3, 0.28, 0.26, 0.24, 0.22, 0.2, 0.18, 0.16
+    ];
+    let bestZ = 0.16;
+    for (let i = 0; i < candidates.length; i++) {
+      const z = candidates[i];
+      const g = this.calculateGapForZoom(z);
+      const gw = c * (s + g) - g;
+      const gh = r * (s + g) - g;
+      if (gw * z > availW) continue;
+      if (!isNarrow && gh * z > availH) continue;
+      bestZ = z;
+      break;
+    }
+    let out = Math.max(isNarrow ? 0.28 : 0.2, Math.min(0.95, bestZ));
+    if (this.mobileProjectFeedActive) {
+      const g0 = this.calculateGapForZoom(out);
+      const gw = c * (s + g0) - g0;
+      if (gw > 0 && gw <= availW + 1) {
+        const zFitW = availW / gw;
+        out = Math.min(1, Math.max(out, Math.min(zFitW, 1)));
+      }
+    }
+    return out;
+  }
+  /**
+   * Testo breve serie: campo `summary` nel record progetto (vedi portfolio/projects/README.md),
+   * oppure `blurb` opzionale se `summary` è vuoto.
    */
   getProjectSummaryText(projectId) {
     const list = window.__PORTFOLIO_PROJECTS__;
     const p = Array.isArray(list)
       ? list.find((x) => String(x.id) === String(projectId))
       : null;
-    if (p && typeof p.summary === "string" && p.summary.trim()) {
+    if (!p) return "";
+    if (typeof p.summary === "string" && p.summary.trim()) {
       return p.summary.trim();
     }
-    return PROJECT_BLURBS[projectId] || "";
+    if (typeof p.blurb === "string" && p.blurb.trim()) {
+      return p.blurb.trim();
+    }
+    return "";
   }
   /**
    * Vista progetto: copertina 2×2 + testo; composizione adattiva per colonne (niente colonna testo da 1 cella stretta).
@@ -540,6 +742,17 @@ class FashionGallery {
       return { rows: 1, placements: [] };
     }
     const projectId = items[0].projectId;
+    if (this.mobileProjectFeedActive && c === 1) {
+      return this.computeGridPlacementsProjectMobileFeed(items, projectId);
+    }
+    const projRec = (window.__PORTFOLIO_PROJECTS__ || []).find(
+      (p) => String(p.id) === String(projectId)
+    );
+    const rawBlurbRows =
+      projRec && typeof projRec.blurbSpanRows === "number"
+        ? projRec.blurbSpanRows
+        : 2;
+    const blurbSpanRows = Math.min(8, Math.max(2, Math.floor(rawBlurbRows)));
     const rest = items.slice(1);
     let contentStartRow = 0;
 
@@ -559,9 +772,9 @@ class FashionGallery {
         row: 0,
         col: 2,
         spanCols: c - 2,
-        spanRows: 2
+        spanRows: blurbSpanRows
       });
-      contentStartRow = 2;
+      contentStartRow = Math.max(2, blurbSpanRows);
     } else if (c === 3) {
       placements.push({
         kind: "lead",
@@ -578,9 +791,9 @@ class FashionGallery {
         row: 2,
         col: 0,
         spanCols: 3,
-        spanRows: 2
+        spanRows: blurbSpanRows
       });
-      contentStartRow = 4;
+      contentStartRow = 2 + blurbSpanRows;
     } else if (c === 2) {
       placements.push({
         kind: "lead",
@@ -597,9 +810,9 @@ class FashionGallery {
         row: 2,
         col: 0,
         spanCols: 2,
-        spanRows: 2
+        spanRows: blurbSpanRows
       });
-      contentStartRow = 4;
+      contentStartRow = 2 + blurbSpanRows;
     } else {
       placements.push({
         kind: "lead",
@@ -616,9 +829,9 @@ class FashionGallery {
         row: 2,
         col: 0,
         spanCols: 1,
-        spanRows: 2
+        spanRows: blurbSpanRows
       });
-      contentStartRow = 4;
+      contentStartRow = 2 + blurbSpanRows;
     }
 
     for (let i = 0; i < rest.length; i++) {
@@ -634,6 +847,46 @@ class FashionGallery {
       });
     }
 
+    let maxBottomRow = 0;
+    for (const p of placements) {
+      maxBottomRow = Math.max(maxBottomRow, p.row + p.spanRows);
+    }
+    return { rows: Math.max(1, maxBottomRow), placements };
+  }
+  /**
+   * Mobile feed: copertina alta, blurb a fascia, poi thumbs a colonna (stessa logica celle, cols=1).
+   */
+  computeGridPlacementsProjectMobileFeed(items, projectId) {
+    const placements = [];
+    const rest = items.slice(1);
+    placements.push({
+      kind: "lead",
+      entry: items[0],
+      row: 0,
+      col: 0,
+      spanCols: 1,
+      spanRows: 2
+    });
+    placements.push({
+      kind: "blurb",
+      projectId,
+      blurbLayout: "band",
+      row: 2,
+      col: 0,
+      spanCols: 1,
+      spanRows: 2
+    });
+    const contentStartRow = 4;
+    for (let i = 0; i < rest.length; i++) {
+      placements.push({
+        kind: "thumb",
+        entry: rest[i],
+        row: contentStartRow + i,
+        col: 0,
+        spanCols: 1,
+        spanRows: 1
+      });
+    }
     let maxBottomRow = 0;
     for (const p of placements) {
       maxBottomRow = Math.max(maxBottomRow, p.row + p.spanRows);
@@ -732,9 +985,12 @@ class FashionGallery {
   }
   /** Una singola serie selezionata: niente drift né formation sulle card. */
   projectOrdinalInPortfolio(projectId) {
+    const key = String(projectId);
+    const map = window.__PORTFOLIO_PROJECT_ORDINAL_BY_ID__;
+    if (map && map[key] != null) return map[key];
     const list = window.__PORTFOLIO_PROJECTS__;
     if (!Array.isArray(list)) return 1;
-    const idx = list.findIndex((p) => String(p.id) === String(projectId));
+    const idx = list.findIndex((p) => String(p.id) === key);
     return idx >= 0 ? idx + 1 : 1;
   }
   projectConceptMetaLine(entry) {
@@ -926,6 +1182,19 @@ class FashionGallery {
       String(this.activeProjectId).length > 0
     );
   }
+  /**
+   * Mobile + vista griglia progetto: il viewport centra il wrapper con flex/margin;
+   * GSAP x/y sul nodo scalato devono restare 0 (altrimenti si somma un offset da “absolute center”).
+   */
+  isMobileProjectCanvasScrollLayout() {
+    if (!this.isProjectFilterActive()) return false;
+    if (this.zoomState.isActive) return false;
+    if (this.isProjectConceptLayoutActive()) return false;
+    if (this.isProjectHorizontalMixedActive()) return false;
+    if (this.isProjectEditorialLayoutActive()) return false;
+    if (typeof window === "undefined") return false;
+    return pfMobileLayout();
+  }
   /** Solo progetti con `layout: "concept"` in __PORTFOLIO_PROJECTS__ (es. Anca & Edward). */
   getActiveProjectRecord() {
     if (!this.isProjectFilterActive()) return null;
@@ -945,6 +1214,174 @@ class FashionGallery {
     if (!p) return false;
     if (p.layout === "horizontal-mixed") return true;
     return String(p.id) === "nude";
+  }
+  /** Pagina progetto: titolo grande + testo + foto su due colonne laterali (desktop). */
+  isProjectEditorialLayoutActive() {
+    const p = this.getActiveProjectRecord();
+    return !!(p && p.layout === "editorial");
+  }
+  teardownProjectEditorialView() {
+    document.body.classList.remove("project-editorial-active");
+    const root = this.projectEditorialEl;
+    if (root) {
+      root.hidden = true;
+      root.setAttribute("hidden", "");
+      root.setAttribute("aria-hidden", "true");
+    }
+    if (this.projectEditorialLeft) this.projectEditorialLeft.innerHTML = "";
+    if (this.projectEditorialRight) this.projectEditorialRight.innerHTML = "";
+    if (this.projectEditorialMobileGallery) {
+      this.projectEditorialMobileGallery.innerHTML = "";
+      this.projectEditorialMobileGallery.hidden = true;
+    }
+    const art = document.getElementById("projectEditorialArticle");
+    if (art) art.innerHTML = "";
+    const fin = document.getElementById("projectEditorialFinale");
+    if (fin) fin.innerHTML = "";
+    if (this.viewport) {
+      gsap.set(this.viewport, { visibility: "visible", pointerEvents: "auto" });
+    }
+  }
+  pickEditorialCardVariant(index, total) {
+    if (total <= 0) return "portrait";
+    const portraitN = Math.min(6, total);
+    if (index < portraitN) return "portrait";
+    const offset = index - portraitN;
+    if (offset % 2 === 0 && index + 1 < total) return "landscape";
+    return "landscape-wide";
+  }
+  appendEditorialCard(containerEl, entry, variant, itemIndex) {
+    if (!containerEl) return;
+    const cfg =
+      (typeof window !== "undefined" && window.__PORTFOLIO_CONFIG__) || {};
+    const driveImages = cfg.imagesFrom === "drive";
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = `project-editorial__card project-editorial__card--${variant}`;
+    const img = document.createElement("img");
+    img.decoding = "async";
+    if (driveImages) img.referrerPolicy = "no-referrer";
+    const slides = this.buildSlideshowSlides(entry);
+    const slide0 = slides[0];
+    img.src = slide0.url;
+    img.alt = slide0.alt;
+    img.loading = variant === "finale" ? "eager" : "lazy";
+    btn.appendChild(img);
+    containerEl.appendChild(btn);
+    const itemData = {
+      element: btn,
+      img,
+      slideViewport: btn,
+      slideTrack: null,
+      slideshowSlides: slides,
+      currentSlideIndex: 0,
+      slideDelay: null,
+      slideTween: null,
+      slideshowPaused: true,
+      slidePauseMul: 1,
+      slideSpeedMul: 1,
+      slideChaos: 0,
+      slideshowResumeStaggerDone: true,
+      driftTween: null,
+      driftDelay: null,
+      driftSuspended: true,
+      driftFormationIdle: true,
+      driftGridX: 0,
+      driftGridY: 0,
+      row: 0,
+      col: 0,
+      spanCols: 1,
+      spanRows: 1,
+      baseX: 0,
+      baseY: 0,
+      imageUrl: slide0.url,
+      fullImageUrl: slide0.fullImageUrl,
+      index: itemIndex,
+      overlayMeta: this.buildOverlayMeta(
+        slide0.catalogEntry ||
+          (entry.type === "remote"
+            ? {
+                type: "remote",
+                overlayIndex:
+                  slide0.overlayIndex ?? entry.overlayIndex ?? itemIndex
+              }
+            : entry)
+      )
+    };
+    this.gridItems.push(itemData);
+  }
+  buildProjectEditorialView() {
+    const root = this.projectEditorialEl;
+    const left = this.projectEditorialLeft;
+    const right = this.projectEditorialRight;
+    const mobileGal = this.projectEditorialMobileGallery;
+    const kickerEl = document.getElementById("projectEditorialKicker");
+    const titleEl = document.getElementById("projectEditorialTitle");
+    const articleEl = document.getElementById("projectEditorialArticle");
+    if (!root || !articleEl) return;
+
+    this.gridContainer.innerHTML = "";
+    this.gridItems = [];
+
+    const rawItems = this.getDisplayItemsForGrid();
+    const entries = [...rawItems].sort(
+      (a, b) => (a.indexInProject ?? 0) - (b.indexInProject ?? 0)
+    );
+    const rec = this.getActiveProjectRecord();
+    const pid = entries[0]?.projectId;
+    const ord = pid != null ? this.projectOrdinalInPortfolio(pid) : 1;
+    if (kickerEl) kickerEl.textContent = `N.${ord}`;
+    if (titleEl) titleEl.textContent = rec?.title || "";
+    const summary = pid != null ? this.getProjectSummaryText(pid) : "";
+    articleEl.innerHTML = "";
+    const paras = summary
+      .split(/\n\n+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const blocks = paras.length ? paras : [summary.trim()].filter(Boolean);
+    blocks.forEach((para, idx) => {
+      const p = document.createElement("p");
+      p.className = "project-editorial__p";
+      if (idx > 0) p.classList.add("project-editorial__p--after");
+      p.textContent = para;
+      articleEl.appendChild(p);
+    });
+
+    if (left) left.innerHTML = "";
+    if (right) right.innerHTML = "";
+    if (mobileGal) {
+      mobileGal.innerHTML = "";
+      mobileGal.hidden = pfMobileLayout() ? false : true;
+    }
+    const finaleEl = document.getElementById("projectEditorialFinale");
+    if (finaleEl) finaleEl.innerHTML = "";
+
+    const n = entries.length;
+    const useMobile = pfMobileLayout();
+    const finaleSeparate = n > 1;
+    const stripCount = finaleSeparate ? n - 1 : 0;
+
+    for (let i = 0; i < stripCount; i++) {
+      const v = this.pickEditorialCardVariant(i, stripCount);
+      const target = useMobile
+        ? mobileGal
+        : i % 2 === 0
+          ? left
+          : right;
+      if (target) this.appendEditorialCard(target, entries[i], v, i);
+    }
+
+    if (finaleEl && n > 0) {
+      const last = entries[n - 1];
+      const lastIdx = n - 1;
+      this.appendEditorialCard(finaleEl, last, "finale", lastIdx);
+    }
+
+    root.hidden = false;
+    root.removeAttribute("hidden");
+    root.setAttribute("aria-hidden", "false");
+    document.body.classList.add("project-editorial-active");
+    gsap.set(this.viewport, { visibility: "hidden", pointerEvents: "none" });
   }
   teardownProjectHorizontalView() {
     document.body.classList.remove("project-horizontal-active");
@@ -1143,10 +1580,38 @@ class FashionGallery {
     };
     addLink("Tutti", null);
     const list = window.__PORTFOLIO_PROJECTS__ || [];
-    list.forEach((p, idx) => {
-      const label = `N.${idx + 1} ${p.title || p.id}`;
-      addLink(label, p.id);
+    const byId = {};
+    list.forEach((p) => {
+      if (p && p.id != null) byId[String(p.id)] = p;
     });
+    const sections = window.__PORTFOLIO_MENU_SECTIONS__;
+    if (sections && sections.length) {
+      sections.forEach((sec, secIdx) => {
+        const headingLi = document.createElement("li");
+        headingLi.className =
+          "projects-nav__section-heading" +
+          (secIdx === 0 ? " projects-nav__section-heading--first" : "");
+        const labelSpan = document.createElement("span");
+        labelSpan.className = "projects-nav__section-label";
+        const raw = (sec.label || "").trim();
+        labelSpan.textContent = raw.endsWith(":") ? raw : `${raw}:`;
+        headingLi.appendChild(labelSpan);
+        ul.appendChild(headingLi);
+        (sec.ids || []).forEach((pid) => {
+          const p = byId[String(pid)];
+          if (!p) return;
+          const n = this.projectOrdinalInPortfolio(pid);
+          const label = `N.${n} ${p.title || p.id}`;
+          addLink(label, p.id);
+        });
+      });
+    } else {
+      list.forEach((p) => {
+        const n = this.projectOrdinalInPortfolio(p.id);
+        const label = `N.${n} ${p.title || p.id}`;
+        addLink(label, p.id);
+      });
+    }
     this.highlightActiveProject();
   }
   setActiveProject(projectId) {
@@ -1158,6 +1623,12 @@ class FashionGallery {
         : String(projectId);
     const changed = this.activeProjectId !== normalized;
     this.activeProjectId = normalized;
+    if (normalized) {
+      document.body.setAttribute("data-active-project", normalized);
+    } else {
+      document.body.removeAttribute("data-active-project");
+    }
+    this.swapProjectMobileStylesheet(normalized);
     this.highlightActiveProject();
     if (changed) {
       this.rebuildGrid();
@@ -1195,6 +1666,7 @@ class FashionGallery {
     if (this.gridItems.length) {
       gsap.killTweensOf(this.gridItems.map((i) => i.element));
     }
+    gsap.killTweensOf(this.getCanvasTransformTarget());
     gsap.killTweensOf(this.canvasWrapper);
 
     this.generateGridItems();
@@ -1218,21 +1690,36 @@ class FashionGallery {
       return;
     }
 
+    this.syncFilteredProjectGridState();
+
     this.config.currentGap = this.calculateGapForZoom(
       this.config.currentZoom
     );
-    gsap.set(this.canvasWrapper, {
-      scale: this.config.currentZoom
-    });
     this.calculateGridDimensions(this.config.currentGap);
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     const { scaledWidth, scaledHeight } = this.gridDimensions;
     const centerX = (vw - scaledWidth) / 2;
     const centerY = (vh - scaledHeight) / 2;
-    gsap.set(this.canvasWrapper, { x: centerX, y: centerY });
-    this.lastValidPosition.x = centerX;
-    this.lastValidPosition.y = centerY;
+    const mobileProjectScroll = this.isMobileProjectCanvasScrollLayout();
+    const tf = this.getCanvasTransformTarget();
+    if (mobileProjectScroll) {
+      gsap.set(tf, {
+        x: 0,
+        y: 0,
+        scale: this.config.currentZoom
+      });
+      this.lastValidPosition.x = 0;
+      this.lastValidPosition.y = 0;
+    } else {
+      gsap.set(tf, {
+        x: centerX,
+        y: centerY,
+        scale: this.config.currentZoom
+      });
+      this.lastValidPosition.x = centerX;
+      this.lastValidPosition.y = centerY;
+    }
     this.updatePercentageIndicator(this.config.currentZoom);
 
     if (this.controlsContainer) {
@@ -1241,7 +1728,6 @@ class FashionGallery {
     }
 
     this.applyGridVisibleAndStartDrift({ entranceControls: false });
-    this.syncFilteredProjectGridState();
 
     setTimeout(() => {
       this.initDraggable();
@@ -1312,8 +1798,9 @@ class FashionGallery {
     else return 64;
   }
   calculateGridDimensions(gap = this.config.currentGap) {
-    const totalWidth = this.config.cols * (this.config.itemSize + gap) - gap;
-    const totalHeight = this.config.rows * (this.config.itemSize + gap) - gap;
+    const cell = this.layoutCellSize();
+    const totalWidth = this.config.cols * (cell + gap) - gap;
+    const totalHeight = this.config.rows * (cell + gap) - gap;
     this.gridDimensions = {
       width: totalWidth,
       height: totalHeight,
@@ -1460,6 +1947,7 @@ class FashionGallery {
     });
   }
   queueNextFormationWave() {
+    if (!ENABLE_GRID_CARD_DRIFT) return;
     if (this.isProjectFilterActive()) return;
     if (this.zoomState.isActive) return;
     if (this.formationWaveTimer) {
@@ -1476,6 +1964,7 @@ class FashionGallery {
    * Parte delle card resta ferma; le altre seguono un path ortogonale (a L) e si allineano in fila.
    */
   runFormationRowWave() {
+    if (!ENABLE_GRID_CARD_DRIFT) return;
     if (this.isProjectFilterActive()) return;
     if (this.zoomState.isActive || !this.gridItems.length) {
       this.queueNextFormationWave();
@@ -1685,6 +2174,7 @@ class FashionGallery {
     gsap.set(itemData.element, { x: 0, y: 0 });
   }
   runGridItemSlipStep(itemData) {
+    if (!ENABLE_GRID_CARD_DRIFT) return;
     if (this.isProjectFilterActive()) return;
     if (itemData.driftFormationIdle) return;
     if (!itemData?.element || itemData.driftSuspended || this.zoomState.isActive)
@@ -1740,6 +2230,7 @@ class FashionGallery {
     });
   }
   resumeGridItemDrift(itemData) {
+    if (!ENABLE_GRID_CARD_DRIFT) return;
     if (!itemData?.element) return;
     if (this.isProjectFilterActive()) return;
     if (itemData.driftFormationIdle) return;
@@ -1764,27 +2255,8 @@ class FashionGallery {
     this.gridItems.forEach((item) => this.pauseGridItemDrift(item));
   }
   startGridDriftForVisibleThumbnails() {
-    if (this.isProjectFilterActive()) {
-      this.clearFormationSchedulingAndFlags();
-      this.gridItems.forEach((item) => this.pauseGridItemDrift(item));
-      return;
-    }
-    const m = 64;
-    const vh = window.innerHeight;
-    const vw = window.innerWidth;
-    const vis = (el) => {
-      const r = el.getBoundingClientRect();
-      return (
-        r.bottom > -m &&
-        r.top < vh + m &&
-        r.right > -m &&
-        r.left < vw + m
-      );
-    };
-    this.gridItems.forEach((itemData) => {
-      if (vis(itemData.element)) this.resumeGridItemDrift(itemData);
-    });
-    this.queueNextFormationWave();
+    this.clearFormationSchedulingAndFlags();
+    this.gridItems.forEach((item) => this.pauseGridItemDrift(item));
   }
   pickSlideshowTargetIndex(itemData) {
     const n = itemData.slideshowSlides.length;
@@ -1914,15 +2386,20 @@ class FashionGallery {
   }
   generateGridItems() {
     this.clearFormationSchedulingAndFlags();
+    this.mobileProjectFeedActive = false;
+    document.body.classList.remove("mobile-project-feed");
     const projectView = this.isProjectFilterActive();
     const conceptLayout = this.isProjectConceptLayoutActive();
     const horizontalMixed = this.isProjectHorizontalMixedActive();
+    const editorialLayout = this.isProjectEditorialLayoutActive();
     if (!projectView) {
       this.teardownProjectConceptView();
       this.teardownProjectHorizontalView();
+      this.teardownProjectEditorialView();
     } else {
       if (!conceptLayout) this.teardownProjectConceptView();
       if (!horizontalMixed) this.teardownProjectHorizontalView();
+      if (!editorialLayout) this.teardownProjectEditorialView();
     }
     if (projectView && conceptLayout) {
       this.buildProjectConceptView();
@@ -1932,7 +2409,10 @@ class FashionGallery {
       this.buildProjectHorizontalView();
       return;
     }
-    this.config.currentGap = this.calculateGapForZoom(this.config.currentZoom);
+    if (projectView && editorialLayout) {
+      this.buildProjectEditorialView();
+      return;
+    }
     const rawItems = this.getDisplayItemsForGrid();
     const displayItems = Array.isArray(rawItems) ? [...rawItems] : [];
     if (projectView) {
@@ -1942,13 +2422,13 @@ class FashionGallery {
     } else {
       this.shuffleArray(displayItems);
     }
+    this.config.currentGap = this.calculateGapForZoom(this.config.currentZoom);
     const { rows, placements } = projectView
       ? this.computeGridPlacementsProject(displayItems, this.config.cols)
       : this.computeGridPlacements(displayItems);
     this.config.rows = rows;
     this.calculateGridDimensions();
-    this.canvasWrapper.style.width = this.gridDimensions.width + "px";
-    this.canvasWrapper.style.height = this.gridDimensions.height + "px";
+    this.applyCanvasLayoutSizing();
     if (this.gridItems.length) {
       this.gridItems.forEach((item) => {
         this.stopGridItemSlideshow(item);
@@ -1966,8 +2446,9 @@ class FashionGallery {
       const placement = placements[i];
       const kind = placement.kind || "thumb";
       const { row, col, spanCols, spanRows } = placement;
-      const x = col * (this.config.itemSize + this.config.currentGap);
-      const y = row * (this.config.itemSize + this.config.currentGap);
+      const cell = this.layoutCellSize();
+      const x = col * (cell + this.config.currentGap);
+      const y = row * (cell + this.config.currentGap);
 
       if (kind === "blurb") {
         const item = document.createElement("div");
@@ -1988,11 +2469,25 @@ class FashionGallery {
         const h = document.createElement("h3");
         h.className = "grid-item__project-title";
         h.textContent = title;
-        const pEl = document.createElement("p");
-        pEl.className = "grid-item__project-summary";
-        pEl.textContent = summary;
         copy.appendChild(h);
-        copy.appendChild(pEl);
+        const paras = summary
+          .split(/\n\n+/)
+          .map((s) => s.trim())
+          .filter(Boolean);
+        if (paras.length <= 1) {
+          const pEl = document.createElement("p");
+          pEl.className = "grid-item__project-summary";
+          pEl.textContent = summary;
+          copy.appendChild(pEl);
+        } else {
+          paras.forEach((para, idx) => {
+            const pEl = document.createElement("p");
+            pEl.className = "grid-item__project-summary";
+            if (idx > 0) pEl.classList.add("grid-item__project-summary--after");
+            pEl.textContent = para;
+            copy.appendChild(pEl);
+          });
+        }
         item.appendChild(copy);
         const itemData = {
           element: item,
@@ -2137,6 +2632,10 @@ class FashionGallery {
       this.gridContainer.appendChild(item);
       this.gridItems.push(itemData);
     }
+    document.body.classList.toggle(
+      "mobile-project-feed",
+      !!this.mobileProjectFeedActive
+    );
   }
   setupViewportObserver() {
     if (this.viewportObserver) {
@@ -2170,13 +2669,14 @@ class FashionGallery {
               if (!this.isProjectFilterActive()) {
                 this.resumeGridItemSlideshow(itemData);
               }
-              this.resumeGridItemDrift(itemData);
             }
           } else {
-            entry.target.classList.add("out-of-view");
             if (this.isProjectFilterActive()) {
-              gsap.set(entry.target, { opacity: 0.1 });
+              /* Vista serie: niente fade a 10% — sembra un filtro nero sulle foto */
+              entry.target.classList.remove("out-of-view");
+              gsap.set(entry.target, { opacity: 1 });
             } else {
+              entry.target.classList.add("out-of-view");
               gsap.to(entry.target, {
                 opacity: 0.1,
                 duration: 0.6,
@@ -2191,9 +2691,9 @@ class FashionGallery {
         });
       },
       {
-        root: null,
-        threshold: 0.15,
-        rootMargin: "10%"
+        root: this.viewport || null,
+        threshold: this.isProjectFilterActive() ? 0.05 : 0.15,
+        rootMargin: this.isProjectFilterActive() ? "0px" : "10%"
       }
     );
     // Observe all grid items
@@ -2270,6 +2770,58 @@ class FashionGallery {
 
     return overlay;
   }
+  /** Dopo Flip.fit (o fallback fullscreen): titoli e overlay zoom. */
+  completeZoomOpenUI(selectedItemData) {
+    this.updateTitleOverlayForItem(selectedItemData);
+    const imageTitleOverlay = this.imageTitleOverlay;
+    gsap.set("#imageSlideNumber span", {
+      y: 18,
+      opacity: 0
+    });
+    gsap.set("#imageSlideTitle h1", {
+      y: 36,
+      opacity: 0
+    });
+    if (this.descriptionLines && this.descriptionLines.length) {
+      gsap.set(this.descriptionLines, {
+        y: 48,
+        opacity: 0
+      });
+    }
+    if (imageTitleOverlay) {
+      imageTitleOverlay.classList.add("active");
+      gsap.to(imageTitleOverlay, {
+        opacity: 1,
+        duration: 0.3,
+        ease: "power2.out",
+        overwrite: "auto"
+      });
+    }
+    gsap.to("#imageSlideNumber span", {
+      duration: 0.8,
+      y: 0,
+      opacity: 1,
+      ease: this.customEase,
+      delay: 0.1
+    });
+    gsap.to("#imageSlideTitle h1", {
+      duration: 0.8,
+      y: 0,
+      opacity: 1,
+      ease: this.customEase,
+      delay: 0.15
+    });
+    if (this.descriptionLines && this.descriptionLines.length) {
+      gsap.to(this.descriptionLines, {
+        duration: 0.8,
+        y: 0,
+        opacity: 1,
+        ease: this.customEase,
+        delay: 0.2,
+        stagger: 0.15
+      });
+    }
+  }
   enterZoomMode(selectedItemData) {
     if (this.zoomState.isActive) return;
     this.zoomState.isActive = true;
@@ -2281,7 +2833,6 @@ class FashionGallery {
     if (this.draggable) this.draggable.disable();
     document.body.classList.add("zoom-mode");
     const splitContainer = this.splitScreenContainer;
-    const zoomTarget = document.getElementById("zoomTarget");
     splitContainer.classList.add("active");
     gsap.to(splitContainer, {
       opacity: 1,
@@ -2293,60 +2844,51 @@ class FashionGallery {
       gsap.set(selectedItemData.img, {
         opacity: 0
       });
-      this.zoomState.flipAnimation = Flip.fit(overlay, zoomTarget, {
-        duration: 1.2,
-        ease: this.customEase,
-        absolute: true,
-        onComplete: () => {
-          this.updateTitleOverlayForItem(selectedItemData);
-          const imageTitleOverlay = this.imageTitleOverlay;
-          gsap.set("#imageSlideNumber span", {
-            y: 18,
-            opacity: 0
-          });
-          gsap.set("#imageSlideTitle h1", {
-            y: 36,
-            opacity: 0
-          });
-          if (this.descriptionLines && this.descriptionLines.length) {
-            gsap.set(this.descriptionLines, {
-              y: 48,
-              opacity: 0
-            });
-          }
-          imageTitleOverlay.classList.add("active");
-          gsap.to(imageTitleOverlay, {
-            opacity: 1,
-            duration: 0.3,
-            ease: "power2.out",
-            overwrite: "auto"
-          });
-          gsap.to("#imageSlideNumber span", {
-            duration: 0.8,
-            y: 0,
-            opacity: 1,
-            ease: this.customEase,
-            delay: 0.1
-          });
-          gsap.to("#imageSlideTitle h1", {
-            duration: 0.8,
-            y: 0,
-            opacity: 1,
-            ease: this.customEase,
-            delay: 0.15
-          });
-          if (this.descriptionLines && this.descriptionLines.length) {
-            gsap.to(this.descriptionLines, {
-              duration: 0.8,
-              y: 0,
-              opacity: 1,
+      const runFit = () => {
+        const target = document.getElementById("zoomTarget");
+        void splitContainer.offsetHeight;
+        const rect = target ? target.getBoundingClientRect() : null;
+        const targetOk =
+          rect &&
+          rect.width >= 64 &&
+          rect.height >= 64 &&
+          Number.isFinite(rect.width) &&
+          Number.isFinite(rect.height);
+        if (!targetOk) {
+          const vw = window.innerWidth;
+          const vh = window.innerHeight;
+          gsap.killTweensOf(overlay);
+          this.zoomState.flipAnimation = null;
+          gsap.set(overlay, { clearProps: "transform" });
+          const br = overlay.getBoundingClientRect();
+          gsap.fromTo(
+            overlay,
+            {
+              left: br.left,
+              top: br.top,
+              width: br.width,
+              height: br.height
+            },
+            {
+              left: 0,
+              top: 0,
+              width: vw,
+              height: vh,
+              duration: 1.05,
               ease: this.customEase,
-              delay: 0.2,
-              stagger: 0.15
-            });
-          }
+              onComplete: () => this.completeZoomOpenUI(selectedItemData)
+            }
+          );
+          return;
         }
-      });
+        this.zoomState.flipAnimation = Flip.fit(overlay, target, {
+          duration: 1.2,
+          ease: this.customEase,
+          absolute: true,
+          onComplete: () => this.completeZoomOpenUI(selectedItemData)
+        });
+      };
+      requestAnimationFrame(() => requestAnimationFrame(runFit));
     };
 
     this.createScalingOverlay(
@@ -2544,7 +3086,7 @@ class FashionGallery {
   handleMouseLeave() {
     if (document.body.classList.contains("dragging")) {
       document.body.classList.remove("dragging");
-      gsap.to(this.canvasWrapper, {
+      gsap.to(this.getCanvasTransformTarget(), {
         duration: 0.6,
         x: this.lastValidPosition.x,
         y: this.lastValidPosition.y,
@@ -2571,7 +3113,7 @@ class FashionGallery {
     const fitZoom = Math.min(zoomToFitWidth, zoomToFitHeight);
     return Math.max(0.1, Math.min(2.0, fitZoom));
   }
-  /** Griglia subito a posto (niente fly-in); drift + UI chrome. */
+  /** Griglia subito a posto (niente fly-in); reset drift + UI chrome. */
   applyGridVisibleAndStartDrift(options = {}) {
     const entranceControls = options.entranceControls !== false;
     this.gridItems.forEach((itemData) => {
@@ -2676,9 +3218,11 @@ class FashionGallery {
       this.gridDimensions.width * this.config.currentZoom;
     const currentScaledHeight =
       this.gridDimensions.height * this.config.currentZoom;
-    const centerX = (vw - currentScaledWidth) / 2;
-    const centerY = (vh - currentScaledHeight) / 2;
-    gsap.to(this.canvasWrapper, {
+    const mobileScroll = this.isMobileProjectCanvasScrollLayout();
+    const centerX = mobileScroll ? 0 : (vw - currentScaledWidth) / 2;
+    const centerY = mobileScroll ? 0 : (vh - currentScaledHeight) / 2;
+    const tf = this.getCanvasTransformTarget();
+    gsap.to(tf, {
       duration: 0.6,
       x: centerX,
       y: centerY,
@@ -2711,9 +3255,13 @@ class FashionGallery {
         this.calculateGridDimensions(newGap);
         const finalScaledWidth = this.gridDimensions.width * fitZoom;
         const finalScaledHeight = this.gridDimensions.height * fitZoom;
-        const finalCenterX = (vw - finalScaledWidth) / 2;
-        const finalCenterY = (vh - finalScaledHeight) / 2;
-        gsap.to(this.canvasWrapper, {
+        const finalCenterX = mobileScroll
+          ? 0
+          : (vw - finalScaledWidth) / 2;
+        const finalCenterY = mobileScroll
+          ? 0
+          : (vh - finalScaledHeight) / 2;
+        gsap.to(this.getCanvasTransformTarget(), {
           duration: 1.2,
           scale: fitZoom,
           x: finalCenterX,
@@ -2722,6 +3270,7 @@ class FashionGallery {
           onComplete: () => {
             this.lastValidPosition.x = finalCenterX;
             this.lastValidPosition.y = finalCenterY;
+            this.applyCanvasLayoutSizing();
             this.initDraggable();
           }
         });
@@ -2754,9 +3303,11 @@ class FashionGallery {
     const vh = window.innerHeight;
     const currentScaledWidth = this.gridDimensions.width * oldZoom;
     const currentScaledHeight = this.gridDimensions.height * oldZoom;
-    const centerX = (vw - currentScaledWidth) / 2;
-    const centerY = (vh - currentScaledHeight) / 2;
-    gsap.to(this.canvasWrapper, {
+    const mobileScroll2 = this.isMobileProjectCanvasScrollLayout();
+    const centerX = mobileScroll2 ? 0 : (vw - currentScaledWidth) / 2;
+    const centerY = mobileScroll2 ? 0 : (vh - currentScaledHeight) / 2;
+    const tf2 = this.getCanvasTransformTarget();
+    gsap.to(tf2, {
       duration: 0.6,
       x: centerX,
       y: centerY,
@@ -2789,9 +3340,13 @@ class FashionGallery {
         this.calculateGridDimensions(newGap);
         const finalScaledWidth = this.gridDimensions.width * zoomLevel;
         const finalScaledHeight = this.gridDimensions.height * zoomLevel;
-        const finalCenterX = (vw - finalScaledWidth) / 2;
-        const finalCenterY = (vh - finalScaledHeight) / 2;
-        gsap.to(this.canvasWrapper, {
+        const finalCenterX = mobileScroll2
+          ? 0
+          : (vw - finalScaledWidth) / 2;
+        const finalCenterY = mobileScroll2
+          ? 0
+          : (vh - finalScaledHeight) / 2;
+        gsap.to(this.getCanvasTransformTarget(), {
           duration: 1.2,
           scale: zoomLevel,
           x: finalCenterX,
@@ -2801,6 +3356,7 @@ class FashionGallery {
             this.lastValidPosition.x = finalCenterX;
             this.lastValidPosition.y = finalCenterY;
             this.calculateGridDimensions(newGap);
+            this.applyCanvasLayoutSizing();
             this.initDraggable();
           }
         });
@@ -2829,12 +3385,14 @@ class FashionGallery {
     if (this.isProjectConceptLayoutActive()) return;
     if (this.isProjectHorizontalMixedActive()) return;
     this.calculateGridDimensions(this.config.currentGap);
+    this.applyCanvasLayoutSizing();
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     const { scaledWidth, scaledHeight } = this.gridDimensions;
-    const centerX = (vw - scaledWidth) / 2;
-    const centerY = (vh - scaledHeight) / 2;
-    gsap.to(this.canvasWrapper, {
+    const mobileScroll3 = this.isMobileProjectCanvasScrollLayout();
+    const centerX = mobileScroll3 ? 0 : (vw - scaledWidth) / 2;
+    const centerY = mobileScroll3 ? 0 : (vh - scaledHeight) / 2;
+    gsap.to(this.getCanvasTransformTarget(), {
       duration: 1.0,
       x: centerX,
       y: centerY,
@@ -2842,6 +3400,7 @@ class FashionGallery {
       onComplete: () => {
         this.lastValidPosition.x = centerX;
         this.lastValidPosition.y = centerY;
+        this.applyCanvasLayoutSizing();
         this.initDraggable();
       }
     });
@@ -2855,16 +3414,16 @@ class FashionGallery {
     // Set initial opacity for viewport to hide the flash
     gsap.set(this.viewport, { opacity: 0 });
 
-    gsap.set(this.canvasWrapper, {
-      scale: this.config.currentZoom
-    });
     this.calculateGridDimensions(this.config.currentGap);
+    this.applyCanvasLayoutSizing();
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     const { scaledWidth, scaledHeight } = this.gridDimensions;
-    const centerX = (vw - scaledWidth) / 2;
-    const centerY = (vh - scaledHeight) / 2;
-    gsap.set(this.canvasWrapper, {
+    const mobileScroll4 = this.isMobileProjectCanvasScrollLayout();
+    const centerX = mobileScroll4 ? 0 : (vw - scaledWidth) / 2;
+    const centerY = mobileScroll4 ? 0 : (vh - scaledHeight) / 2;
+    gsap.set(this.getCanvasTransformTarget(), {
+      scale: this.config.currentZoom,
       x: centerX,
       y: centerY
     });
@@ -2952,6 +3511,24 @@ class FashionGallery {
           !card ||
           !this.projectHorizontalTrack ||
           !this.projectHorizontalTrack.contains(card)
+        ) {
+          return;
+        }
+        const itemData = this.gridItems.find((g) => g.element === card);
+        if (!itemData) return;
+        e.preventDefault();
+        this.enterZoomMode(itemData);
+      });
+    }
+
+    if (this.projectEditorialEl) {
+      this.projectEditorialEl.addEventListener("click", (e) => {
+        if (!this.isProjectEditorialLayoutActive()) return;
+        if (this.zoomState.isActive || this.isAboutOpen()) return;
+        const card = e.target.closest(".project-editorial__card");
+        if (
+          !card ||
+          !this.projectEditorialEl.contains(card)
         ) {
           return;
         }
@@ -3067,7 +3644,7 @@ class FashionGallery {
 }
 
 /**
- * Se in portfolio-data.js è impostato __PORTFOLIO_CONFIG__.driveManifestUrl (URL App web
+ * Se in portfolio/portfolio-config.js è impostato __PORTFOLIO_CONFIG__.driveManifestUrl (URL App web
  * Google Apps Script), carica progetti + ID file Drive prima di avviare la galleria.
  */
 async function loadPortfolioDriveManifest() {
@@ -3080,20 +3657,42 @@ async function loadPortfolioDriveManifest() {
     "";
   if (!url) return;
   let res;
-  if (typeof AbortController !== "undefined") {
-    const ctrl = new AbortController();
-    const t = window.setTimeout(() => ctrl.abort(), 12000);
-    try {
-      res = await fetch(url, {
-        method: "GET",
-        redirect: "follow",
-        signal: ctrl.signal
-      });
-    } finally {
-      window.clearTimeout(t);
+  const manifestTimeoutMs = 20000;
+  try {
+    if (typeof AbortController !== "undefined") {
+      const ctrl = new AbortController();
+      const t = window.setTimeout(() => {
+        if (typeof DOMException !== "undefined") {
+          ctrl.abort(
+            new DOMException(
+              "Timeout manifest Drive (" + manifestTimeoutMs + "ms)",
+              "TimeoutError"
+            )
+          );
+        } else {
+          ctrl.abort();
+        }
+      }, manifestTimeoutMs);
+      try {
+        res = await fetch(url, {
+          method: "GET",
+          redirect: "follow",
+          signal: ctrl.signal
+        });
+      } finally {
+        window.clearTimeout(t);
+      }
+    } else {
+      res = await fetch(url, { method: "GET", redirect: "follow" });
     }
-  } else {
-    res = await fetch(url, { method: "GET", redirect: "follow" });
+  } catch (err) {
+    if (err && err.name === "AbortError") {
+      console.warn(
+        "Portfolio: manifest Drive non disponibile (timeout o rete). Restano i dati già caricati da portfolio/projects."
+      );
+      return;
+    }
+    throw err;
   }
   if (!res.ok) {
     throw new Error(`Manifest Drive: HTTP ${res.status}`);
@@ -3108,6 +3707,7 @@ async function loadPortfolioDriveManifest() {
   window.__PORTFOLIO_PROJECTS__ = data.projects.map((p) =>
     Object.assign({}, p, patchMap[p.id] || {})
   );
+  reorderPortfolioProjectsToCanonicalOrder();
   if (data.config && typeof data.config === "object") {
     window.__PORTFOLIO_CONFIG__ = Object.assign(
       {},
@@ -3191,7 +3791,7 @@ function scheduleHomeLoadingMaxTimeout() {
 
 let gallery;
 
-document.addEventListener("DOMContentLoaded", async () => {
+async function fashionGalleryBoot() {
   homeLoadingStart = performance.now();
   scheduleHomeLoadingMaxTimeout();
   try {
@@ -3211,4 +3811,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     });
   }
-});
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", fashionGalleryBoot);
+} else {
+  fashionGalleryBoot();
+}

@@ -11,7 +11,7 @@ La cartella condivisa ([portfolio rubina sito](https://drive.google.com/drive/fo
    - Esegui come: **Io**
    - Chi ha accesso: **Chiunque** (o “Chiunque su Internet”)
 5. Copia l’**URL** che termina con **`/exec`** (non `/dev`).
-6. In `portfolio-data.js` (root del repo) imposta:
+6. In `portfolio/portfolio-config.js` imposta:
    ```js
    driveManifestUrl: "https://script.google.com/macros/s/XXXX/exec"
    ```
@@ -36,4 +36,4 @@ Alcuni browser bloccano `fetch` verso `script.google.com`. In quel caso:
 - prova da un dominio reale (non `file://`), oppure
 - esegui `doGet` dall’editor Apps Script (icona Esegui), apri **Visualizza → Log** e non è ideale per il JSON; meglio usare **Distribuzione** app web e testare l’URL in una nuova scheda: deve comparire solo JSON.
 
-Se serve, si può esportare il JSON una volta e incollarlo di nuovo in `__PORTFOLIO_PROJECTS__` in `portfolio-data.js` (come prima), con `imagesFrom: "drive"`.
+Se serve, si può usare il JSON del manifest come sorgente e aggiornare i singoli `portfolio/projects/<categoria>/<id>/data.js`, con `imagesFrom: "drive"` in config.

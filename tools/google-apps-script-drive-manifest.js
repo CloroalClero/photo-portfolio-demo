@@ -7,7 +7,7 @@
  *    Tipo: App web
  *    Esegui come: Me
  *    Chi ha accesso: Chiunque
- * 4. Copia l’URL che termina con /exec e incollalo in portfolio-data.js → driveManifestUrl
+ * 4. Copia l’URL che termina con /exec e incollalo in portfolio/portfolio-config.js → driveManifestUrl
  *
  * Cartella radice (stessa struttura delle cartelle locali):
  * https://drive.google.com/drive/folders/1U62jXXhkW0K6bGWlO75GUxEQWRf_N0Ay
