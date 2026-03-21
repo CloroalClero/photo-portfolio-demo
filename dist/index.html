@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="it">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Portfolio — Rubina</title>
+    <link rel="stylesheet" href="https://public.codepenassets.com/css/normalize-5.0.0.min.css">
+<link rel="stylesheet" href="./style.css">
+
+  </head>
+    
+  <body>
+<div id="homeLoadingOverlay" class="home-loading" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-label="Caricamento portfolio" aria-busy="true">
+  <div class="home-loading__vignette" aria-hidden="true"></div>
+  <div class="home-loading__chrome-top" aria-hidden="true"></div>
+  <div class="home-loading__inner">
+    <h1 class="home-loading__title">Rubina Stradella</h1>
+    <div class="home-loading__wrap">
+    <div class="home-loading__pos">
+      <div class="home-loading__cube"><div class="home-loading__left"></div><div class="home-loading__center"></div><div class="home-loading__right"></div><div class="home-loading__bottom"></div></div>
+      <div class="home-loading__cube"><div class="home-loading__left"></div><div class="home-loading__center"></div><div class="home-loading__right"></div><div class="home-loading__bottom"></div></div>
+      <div class="home-loading__cube"><div class="home-loading__left"></div><div class="home-loading__center"></div><div class="home-loading__right"></div><div class="home-loading__bottom"></div></div>
+      <div class="home-loading__cube"><div class="home-loading__left"></div><div class="home-loading__center"></div><div class="home-loading__right"></div><div class="home-loading__bottom"></div></div>
+      <div class="home-loading__cube"><div class="home-loading__left"></div><div class="home-loading__center"></div><div class="home-loading__right"></div><div class="home-loading__bottom"></div></div>
+      <div class="home-loading__cube"><div class="home-loading__left"></div><div class="home-loading__center"></div><div class="home-loading__right"></div><div class="home-loading__bottom"></div></div>
+      <div class="home-loading__cube"><div class="home-loading__left"></div><div class="home-loading__center"></div><div class="home-loading__right"></div><div class="home-loading__bottom"></div></div>
+      <div class="home-loading__cube"><div class="home-loading__left"></div><div class="home-loading__center"></div><div class="home-loading__right"></div><div class="home-loading__bottom"></div></div>
+    </div>
+    </div>
+  </div>
+  <div class="home-loading__chrome-bottom">
+    <p class="home-loading__meta">Portfolio · 2025</p>
+  </div>
+</div>
+
+<header class="header header-bar" role="banner">
+  <div class="header-bar__left">
+    <div class="logo-container" id="logoReset" role="button" tabindex="0" aria-label="Rubina Stradella — mostra tutte le foto">
+      <div class="logo-mark" aria-hidden="true">
+        <span class="logo-letter logo-letter--r">R</span>
+        <span class="logo-letter logo-letter--s">S</span>
+      </div>
+      <span class="logo-fullname" aria-hidden="true">Rubina Stradella</span>
+    </div>
+  </div>
+  <nav class="header-bar__nav" aria-label="Navigazione principale">
+    <a href="#about" class="header-about-link" id="aboutNavLink" aria-label="About me — vai alla biografia">
+      <span class="header-panel__trigger-plus" aria-hidden="true">+</span>About me
+    </a>
+    <details class="header-panel header-panel--projects" id="headerPanelProjects" hidden>
+      <summary class="header-panel__trigger">
+        <span class="header-panel__trigger-plus" aria-hidden="true">+</span>Progetti
+      </summary>
+      <div class="header-panel__drawer">
+        <button type="button" class="header-panel__backdrop" tabindex="-1" aria-label="Chiudi pannello"></button>
+        <div class="header-panel__content header-panel__content--projects" role="region" aria-label="Filtra per progetto">
+          <header class="header-panel__menu-head">
+            <h3 class="header-panel__h">
+              <span class="header-panel__h-plus" aria-hidden="true">+</span>Serie
+            </h3>
+            <p class="header-panel__sub">
+              Tocca una serie per filtrare la griglia. Il logo ripristina <em>tutte</em> le foto.
+            </p>
+          </header>
+          <ul id="projectNav" class="projects-nav header-panel__list header-panel__list--projects"></ul>
+        </div>
+      </div>
+    </details>
+    <details class="header-panel header-panel--social" id="headerPanelSocial">
+      <summary class="header-panel__trigger">
+        <span class="header-panel__trigger-plus" aria-hidden="true">+</span>Social
+      </summary>
+      <div class="header-panel__drawer">
+        <button type="button" class="header-panel__backdrop" tabindex="-1" aria-label="Chiudi pannello"></button>
+        <div class="header-panel__content header-panel__content--social" role="region" aria-label="Social">
+          <h3 class="header-panel__h">
+            <span class="header-panel__h-plus" aria-hidden="true">+</span>Follow
+          </h3>
+          <ul class="header-panel__list header-panel__list--social">
+            <li><a href="https://instagram.com/filipz__" rel="noopener noreferrer">Instagram</a></li>
+            <li><a href="https://x.com/filipz" rel="noopener noreferrer">Twitter</a></li>
+            <li><a href="https://linkedin.com/in/filipzrnzevic" rel="noopener noreferrer">LinkedIn</a></li>
+          </ul>
+        </div>
+      </div>
+    </details>
+  </nav>
+</header>
+
+<!-- Main Viewport -->
+<div class="viewport" id="viewport">
+  <div class="canvas-wrapper" id="canvasWrapper">
+    <div class="grid-container" id="gridContainer">
+      <!-- Grid items will be generated by JavaScript -->
+    </div>
+  </div>
+</div>
+
+<section id="about" class="about-page" hidden aria-hidden="true">
+  <div class="about-page__inner">
+    <header class="about-page__head">
+      <p class="about-page__kicker">About</p>
+      <h1 class="about-page__title">Rubina Stradella</h1>
+    </header>
+    <div class="about-page__body">
+      <p class="about-page__p">
+        Mi chiamo Rubina Maya, ho 23 anni e sono nata in Valle d’Aosta, dove sin da piccola ho coltivato la curiosità per l’arte e la fotografia.
+      </p>
+      <p class="about-page__p">
+        Intraprendo gli studi al Liceo Artistico di Aosta e mi diplomo nel 2021. Qui riesco a conoscere non solo il disegno, ma anche la storia dell’arte, la grafica e la fotografia, che già praticavo per conto mio.
+      </p>
+      <p class="about-page__p">
+        Dall’ottobre del 2021 a settembre 2024 frequento la LABA di Brescia e a luglio 2025 ottengo il diploma accademico di primo livello in Fotografia, realizzando una tesi di laurea di ricerca sull’archivio fotografico di famiglia che s’intitola <cite class="about-page__cite">L’archivio ritrovato</cite>.
+      </p>
+      <p class="about-page__p">
+        Adoro osservare, amo creare e mi affascinano le storie. Quelle fantastiche o quelle reali, di persone.
+      </p>
+      <p class="about-page__p">
+        Sento di avere il compito di mantenere la memoria viva, che sia la mia, ascoltando e raccontando, che sia quella delle altre persone, creando fotografie che non sono solo immagini, ma sono veri e propri ricordi, perché come dice Roland Barthes:
+      </p>
+      <blockquote class="about-page__quote">
+        <p>«La fotografia riproduce meccanicamente ciò che non potrà mai ripetersi».</p>
+      </blockquote>
+    </div>
+  </div>
+</section>
+
+<!-- Split Screen Container -->
+<div class="split-screen-container" id="splitScreenContainer">
+  <div class="split-left" id="splitLeft">
+    <div class="zoom-target" id="zoomTarget"></div>
+  </div>
+  <div class="split-right" id="splitRight">
+    <!-- Right panel content -->
+  </div>
+</div>
+
+<div class="image-title-overlay" id="imageTitleOverlay">
+  <div class="image-slide-number" id="imageSlideNumber">
+    <span>01</span>
+  </div>
+  <div class="image-slide-title" id="imageSlideTitle">
+    <h1>Fashion Portrait</h1>
+  </div>
+  <div class="image-slide-description" id="imageSlideDescription">
+    <!-- Lines will be generated dynamically -->
+  </div>
+</div>
+
+<section id="projectConceptView" class="project-concept" hidden aria-hidden="true">
+  <button type="button" class="project-concept__hero" id="projectConceptHeroBtn" aria-label="Apri immagine a schermo intero">
+    <img class="project-concept__hero-img" id="projectConceptHeroImg" alt="" width="1200" height="1600" />
+    <div class="project-concept__hero-gradient" aria-hidden="true"></div>
+    <div class="project-concept__hero-copy">
+      <p class="project-concept__num" id="projectConceptNum"></p>
+      <h2 class="project-concept__name" id="projectConceptName"></h2>
+      <p class="project-concept__meta" id="projectConceptMeta"></p>
+      <p class="project-concept__summary" id="projectConceptSummary" hidden></p>
+    </div>
+  </button>
+  <div class="project-concept__grid-wrap">
+    <div class="project-concept__grid" id="projectConceptGrid"></div>
+  </div>
+</section>
+
+<section id="projectHorizontalView" class="project-h" hidden aria-hidden="true">
+  <header class="project-h__head">
+    <p class="project-h__kicker" id="projectHorizontalKicker"></p>
+    <h2 class="project-h__title" id="projectHorizontalTitle"></h2>
+    <p class="project-h__summary" id="projectHorizontalSummary"></p>
+  </header>
+  <div class="project-h__scroll" id="projectHorizontalScroll">
+    <div class="project-h__track" id="projectHorizontalTrack"></div>
+  </div>
+</section>
+
+<!-- Simple 64px white arrow button -->
+<button class="close-button" id="closeButton">
+  <svg width="64" height="64" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M7.89873 16L6.35949 14.48L11.8278 9.08H0V6.92H11.8278L6.35949 1.52L7.89873 0L16 8L7.89873 16Z" fill="white" />
+  </svg>
+</button>
+
+<footer class="footer footer--lite" role="contentinfo">
+  <div class="footer__inner">
+    <p class="footer__line">Portfolio · 2025</p>
+  </div>
+</footer>
+
+<!-- Page vignette effects -->
+<div class="page-vignette-container">
+  <div class="page-vignette-extreme"></div>
+</div>
+    <script src='https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js'></script>
+<script src='https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/CustomEase.min.js'></script>
+<script src='https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/Flip.min.js'></script>
+<script src="./portfolio-data.js"></script>
+<script src="./script.js"></script>
+
+  </body>
+  
+</html>
