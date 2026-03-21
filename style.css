@@ -787,6 +787,10 @@ body.project-horizontal-active #viewport {
   margin-bottom: 0.85rem;
 }
 
+.header-panel__content--social .header-panel__h--sub {
+  margin-top: 1.25rem;
+}
+
 @-webkit-keyframes panelDrop {
   from {
     opacity: 0;
