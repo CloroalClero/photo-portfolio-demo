@@ -270,6 +270,10 @@
     max-width: none;
   }
 
+  body.zoom-mode .image-title-overlay .image-slide-description-scroll {
+    max-height: min(42vh, 320px);
+  }
+
   body.zoom-mode
     .image-title-overlay.image-title-overlay--relaxed
     .image-slide-description-scroll {
