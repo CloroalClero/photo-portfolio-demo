@@ -19,6 +19,10 @@ La cartella condivisa ([portfolio rubina sito](https://drive.google.com/drive/fo
 
 Il sito, all’avvio, scarica il JSON con tutti i `driveId` e imposta `imagesFrom: "drive"` automaticamente dal manifest.
 
+### Griglia Drive + zoom da file locali (`media/`)
+
+Se nel manifest ogni immagine include anche il nome file (`images: [{ driveId, file: "nome.jpg" }, …]`, come nello script in `tools/`), puoi lasciare **`useLocalMediaForZoom: true`** in `portfolio-config.js`: la griglia usa le miniature Drive, lo zoom fullscreen carica **`media/projects/<folder progetto>/<stesso nome file>`** dal sito. In deploy vanno quindi pubblicate le cartelle `media/projects/...` con gli originali allineati ai nomi del manifest.
+
 ### Permessi
 
 La prima esecuzione chiederà l’autorizzazione a leggere i file su Drive: accetta con l’account che **possiede** la cartella (o che ha accesso in lettura alle sottocartelle).

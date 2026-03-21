@@ -1445,6 +1445,8 @@ body.zoom-mode .split-screen-container {
 
 body.zoom-mode .scaling-image-overlay {
   z-index: 10045 !important;
+  pointer-events: auto;
+  touch-action: pan-y;
 }
 
 /* Footer a z-index 10000: sopra la fascia NUDE; nascosto come per about */

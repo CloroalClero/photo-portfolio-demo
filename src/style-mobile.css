@@ -387,26 +387,68 @@
   }
 
   .project-editorial__main {
-    order: 1;
     width: 100%;
   }
 
-  .project-editorial__finale {
-    order: 3;
-    max-width: 100%;
-    margin-top: clamp(1.75rem, 5vw, 2.75rem);
+  /* Testo spostato in fondo via JS: separazione visiva dalla galleria */
+  .project-editorial__scroll > .project-editorial__article {
+    margin-top: clamp(0.25rem, 2vw, 0.75rem);
+    padding-top: clamp(1.25rem, 4vw, 2rem);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    width: 100%;
+    box-sizing: border-box;
   }
 
+  .project-editorial__finale {
+    max-width: 100%;
+    margin-top: clamp(1rem, 3vw, 1.75rem);
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  /* Una colonna, immagine intera (no crop) — stesso approccio della card finale */
   .project-editorial__mobile-gallery {
     display: grid !important;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.65rem;
-    order: 2;
+    grid-template-columns: 1fr;
+    gap: clamp(0.85rem, 3vw, 1.15rem);
     width: 100%;
   }
 
   .project-editorial__mobile-gallery[hidden] {
     display: none !important;
+  }
+
+  body.project-editorial-active .project-editorial__mobile-gallery .project-editorial__card {
+    aspect-ratio: unset;
+    width: 100%;
+    min-height: 0;
+    height: auto;
+    overflow: hidden;
+    background: #0c0c0c;
+    border-radius: 5px;
+  }
+
+  body.project-editorial-active
+    .project-editorial__mobile-gallery
+    .project-editorial__card--portrait,
+  body.project-editorial-active
+    .project-editorial__mobile-gallery
+    .project-editorial__card--landscape,
+  body.project-editorial-active
+    .project-editorial__mobile-gallery
+    .project-editorial__card--landscape-wide {
+    aspect-ratio: unset;
+  }
+
+  body.project-editorial-active .project-editorial__mobile-gallery .project-editorial__card img {
+    position: relative;
+    inset: auto;
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: none;
+    object-fit: contain;
+    object-position: center;
   }
 
   body.project-editorial-active[data-active-project="florentina"]
@@ -415,6 +457,14 @@
     font-weight: 400;
     font-size: clamp(2rem, 8vw, 2.95rem);
     line-height: 1.08;
+  }
+
+  /* Allineato a style-desktop (901px+) per il testo lungo */
+  body.project-editorial-active[data-active-project="florentina"]
+    .project-editorial__article
+    .project-editorial__p {
+    font-size: clamp(0.92rem, 3.5vw, 1.05rem);
+    line-height: 1.72;
   }
 
   .project-editorial__p {

@@ -19,6 +19,15 @@ Ogni serie ha una cartella **`portfolio/projects/<categoria>/<id>/`** (lo `id` c
 
 Immagini restano in **`media/projects/<NomeCartella>/`** come prima (`folder` in `data.js`).
 
+### Prestazioni (immagini locali)
+
+Il browser **decodifica l’intero JPEG** anche se la cella in griglia è piccola: file da 20–40 MP causano **lag**, **RAM alta** e scroll a scatti.
+
+- Esporta per il web (lato lungo indicativamente **1600–2200 px**, qualità ~75–82) oppure tieni gli originali ma aggiungi **miniature** usate solo in griglia / editoriale:
+  - In **`portfolio/portfolio-config.js`**, imposta `localThumbnailSubfolder: "thumbs"` e crea `media/projects/<NomeCartella>/thumbs/` con **gli stessi nomi file** dell’array `images` (JPEG leggeri). Lo **zoom** continuerà a usare i file nella cartella principale (`fullImageUrl`).
+  - In alternativa, in `data.js`: `images: [{ file: "01.jpg", thumb: "previews/01.jpg" }, …]`.
+- **`gridImageEagerCount`** (default `14`): solo le prime N celle foto usano `loading="eager"`, le altre `lazy`, per non avviare decine di caricamenti insieme.
+
 Per **nuovo progetto**:
 
 1. Scegli la categoria e crea `portfolio/projects/<categoria>/<id>/data.js` (vedi un esistente nella stessa categoria).

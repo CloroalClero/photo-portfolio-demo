@@ -4,10 +4,18 @@
  */
 window.__PORTFOLIO_CONFIG__ = window.__PORTFOLIO_CONFIG__ || {
   imagesFrom: "local",
+  /** Con imagesFrom "drive": griglia da Drive, zoom da media/projects/&lt;folder&gt; se il manifest ha `file` per ogni immagine. */
+  useLocalMediaForZoom: true,
+  /** Quante foto zoom precaricare per lato (±). Valori alti + richieste in parallelo saturano il browser. */
+  zoomPrefetchNeighborRadius: 4,
   useThumbnailsInGrid: true,
   basePath: "",
   driveManifestUrl:
-    "https://script.google.com/macros/s/AKfycbzDPttz-8mlW-CgdxvfDr3O_-1Nn-YQhcpRZBt6MV8uVLAku0QEK0uXvayRghIDELm0/exec"
+    "https://script.google.com/macros/s/AKfycbzDPttz-8mlW-CgdxvfDr3O_-1Nn-YQhcpRZBt6MV8uVLAku0QEK0uXvayRghIDELm0/exec",
+  /** Locale: sottocartella con stessi nomi file, JPEG ridotti per la griglia (lo zoom usa i file grandi). */
+  localThumbnailSubfolder: "",
+  /** Quante celle foto caricano subito (eager); il resto è lazy (meno lag con molte immagini). */
+  gridImageEagerCount: 14
 };
 
 /** Testo completo vista editoriale (il manifest Drive spesso ha solo un riassunto corto). */

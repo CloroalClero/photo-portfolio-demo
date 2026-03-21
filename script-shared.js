@@ -17,6 +17,10 @@ function pfMobileLayout() {
     : window.innerWidth <= 900;
 }
 
+/** Placeholder 1×1 per img editoriali mobile in attesa dell’IntersectionObserver. */
+const PF_EDITORIAL_IMG_PLACEHOLDER =
+  "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
+
 /**
  * Allinea __PORTFOLIO_PROJECTS__ a __PORTFOLIO_PROJECT_ORDER__ (N.1… come da registry).
  * Progetti non listati in ORDER restano in coda (es. voci solo da manifest Drive).
@@ -111,6 +115,14 @@ class FashionGallery {
     };
     this.draggable = null;
     this.viewportObserver = null;
+    /** Carico differito miniature vista editoriale (mobile, scroll interno). */
+    this._editorialImageObserver = null;
+    this._handleZoomKeysBound = (e) => this.handleZoomKeys(e);
+    this._handleSplitAreaClickBound = (e) => this.handleSplitAreaClick(e);
+    this._zoomNavTouchStartBound = (e) => this.onZoomNavTouchStart(e);
+    this._zoomNavTouchEndBound = (e) => this.onZoomNavTouchEnd(e);
+    this._zoomNavTouchStartX = null;
+    this._zoomNavTouchStartY = null;
     /** Vista serie su mobile: colonna unica, celle larghe (feed) */
     this.mobileProjectFeedActive = false;
     // Initialize sound system
@@ -255,7 +267,11 @@ class FashionGallery {
         const files = project.images || [];
         const n = files.length;
         files.forEach((raw, indexInProject) => {
-          const resolved = this.resolvePortfolioImage(project, raw);
+          const resolved = this.resolvePortfolioImage(
+            project,
+            raw,
+            indexInProject
+          );
           this.catalog.push({
             type: "local",
             projectId: project.id,
@@ -264,6 +280,7 @@ class FashionGallery {
             file: resolved.file,
             url: resolved.url,
             fullImageUrl: resolved.fullImageUrl,
+            driveFileId: resolved.driveFileId || "",
             indexInProject,
             projectImageCount: n
           });
@@ -437,24 +454,45 @@ class FashionGallery {
     return base ? `${base}${path}` : path;
   }
   /**
-   * Local: raw è il nome file (string) o { file: "nome.jpg" }.
+   * Local: raw è il nome file (string), { file, thumb? }, oppure thumb da cartella globale (vedi
+   * `localThumbnailSubfolder` in __PORTFOLIO_CONFIG__). La griglia usa `url` (miniatura), lo zoom `fullImageUrl`.
    * Google Drive: imposta window.__PORTFOLIO_CONFIG__.imagesFrom = "drive" e metti in images
    * l’ID file (string) o { driveId: "ID", file: "etichetta.jpg" } nello stesso ordine dei file locali.
+   * Con useLocalMediaForZoom + file (o localZoomImages), lo zoom usa media/projects/&lt;folder&gt;/&lt;file&gt;.
    */
-  resolvePortfolioImage(project, raw) {
+  resolvePortfolioImage(project, raw, indexInProject) {
     const cfg =
       (typeof window !== "undefined" && window.__PORTFOLIO_CONFIG__) || {};
     const from = cfg.imagesFrom || "local";
+    const idx =
+      typeof indexInProject === "number" && indexInProject >= 0
+        ? indexInProject
+        : 0;
 
     if (from === "drive") {
       const id =
         typeof raw === "string"
           ? raw.trim()
           : (raw && (raw.driveId || raw.id || raw.fileId)) || "";
-      const file =
+      const rawFile =
         typeof raw === "object" && raw && raw.file
-          ? raw.file
-          : `img-${(id || "x").slice(0, 8)}`;
+          ? String(raw.file).trim()
+          : "";
+      const localZoomMap =
+        (project && project.localZoomImages) ||
+        (typeof window !== "undefined" &&
+          window.__PORTFOLIO_LOCAL_ZOOM_FILES_BY_ID__ &&
+          window.__PORTFOLIO_LOCAL_ZOOM_FILES_BY_ID__[String(project.id)]) ||
+        null;
+      const nameFromIndex =
+        Array.isArray(localZoomMap) && localZoomMap[idx] != null
+          ? String(localZoomMap[idx]).trim()
+          : "";
+      const zoomLocalFile = nameFromIndex || rawFile;
+      const file =
+        zoomLocalFile ||
+        rawFile ||
+        (id ? `img-${id.slice(0, 8)}` : "img-x");
       const enc = id ? encodeURIComponent(id) : "";
       const thumbTpl =
         cfg.driveThumbnailTemplate ||
@@ -464,18 +502,259 @@ class FashionGallery {
         (cfg.driveUrlTemplate
           ? cfg.driveUrlTemplate
           : "https://drive.google.com/thumbnail?id={id}&sz=w3840");
-      const fullImageUrl = enc ? fullTpl.split("{id}").join(enc) : "";
+      const driveFullRemote = enc ? fullTpl.split("{id}").join(enc) : "";
       const useThumb = cfg.useThumbnailsInGrid !== false;
       const url =
         enc && useThumb
           ? thumbTpl.split("{id}").join(enc)
-          : fullImageUrl;
-      return { url, fullImageUrl: fullImageUrl || url, file };
+          : driveFullRemote;
+      let fullImageUrl = "";
+      if (
+        cfg.useLocalMediaForZoom &&
+        project &&
+        project.folder &&
+        zoomLocalFile
+      ) {
+        fullImageUrl = this.mediaProjectUrl(project.folder, zoomLocalFile);
+      } else if (driveFullRemote) {
+        fullImageUrl = driveFullRemote;
+      } else {
+        fullImageUrl = url;
+      }
+      return {
+        url,
+        fullImageUrl: fullImageUrl || url,
+        file,
+        driveFileId: id || ""
+      };
     }
 
-    const file = typeof raw === "string" ? raw : raw && raw.file;
-    const url = this.mediaProjectUrl(project.folder, file);
-    return { url, fullImageUrl: url, file };
+    const file =
+      typeof raw === "string" ? raw : raw && raw.file ? raw.file : "";
+    if (!file) {
+      const u = this.mediaProjectUrl(project.folder, "missing.jpg");
+      return { url: u, fullImageUrl: u, file: "missing.jpg", driveFileId: "" };
+    }
+    const fullUrl = this.mediaProjectUrl(project.folder, file);
+    const thumbOverride =
+      typeof raw === "object" &&
+      raw != null &&
+      typeof raw.thumb === "string" &&
+      raw.thumb.trim();
+    if (thumbOverride) {
+      return {
+        url: this.mediaProjectUrl(project.folder, thumbOverride.trim()),
+        fullImageUrl: fullUrl,
+        file,
+        driveFileId: ""
+      };
+    }
+    const thumbSub = String(cfg.localThumbnailSubfolder || "")
+      .trim()
+      .replace(/^\/+|\/+$/g, "");
+    if (thumbSub) {
+      const thumbRel = `${thumbSub}/${file}`.replace(/\/+/g, "/");
+      return {
+        url: this.mediaProjectUrl(project.folder, thumbRel),
+        fullImageUrl: fullUrl,
+        file,
+        driveFileId: ""
+      };
+    }
+    return { url: fullUrl, fullImageUrl: fullUrl, file, driveFileId: "" };
+  }
+  /**
+   * Miniatura Drive più stretta per la vista editoriale su mobile (meno MB e meno richieste parallele).
+   * Lo zoom usa `getZoomPrimaryImageUrl` (sz intermedia, non w3840).
+   */
+  getDriveEditorialMobileThumbUrl(driveFileId) {
+    const id = String(driveFileId || "").trim();
+    if (!id) return "";
+    const cfg =
+      (typeof window !== "undefined" && window.__PORTFOLIO_CONFIG__) || {};
+    const w = Math.min(
+      1600,
+      Math.max(400, Number(cfg.driveEditorialMobileThumbWidth) || 720)
+    );
+    const enc = encodeURIComponent(id);
+    return `https://drive.google.com/thumbnail?id=${enc}&sz=w${w}`;
+  }
+  buildDriveThumbnailByFileId(driveFileId, maxWidth) {
+    const id = String(driveFileId || "").trim();
+    if (!id) return "";
+    const w = Math.min(3840, Math.max(400, Math.round(maxWidth)));
+    const enc = encodeURIComponent(id);
+    return `https://drive.google.com/thumbnail?id=${enc}&sz=w${w}`;
+  }
+  /** Slide visibile nella cella (indice aggiornato dallo slideshow). */
+  getGridItemCurrentSlide(itemData) {
+    const slides = itemData && itemData.slideshowSlides;
+    if (!slides || !slides.length) return null;
+    const idxRaw = itemData.currentSlideIndex;
+    const idx =
+      typeof idxRaw === "number" && idxRaw >= 0 && idxRaw < slides.length
+        ? idxRaw
+        : 0;
+    return slides[idx] || slides[0];
+  }
+  getDriveFileIdFromGridItem(itemData) {
+    const s = this.getGridItemCurrentSlide(itemData);
+    const cat = s && s.catalogEntry;
+    if (!cat) return "";
+    return String(cat.driveFileId || "").trim();
+  }
+  /**
+   * Allinea metadati zoom/titoli alla slide corrente (dopo avanzamento slideshow o snap).
+   */
+  syncGridItemUrlsToCurrentSlide(itemData) {
+    const s = this.getGridItemCurrentSlide(itemData);
+    if (!s) return;
+    itemData.imageUrl = s.url;
+    itemData.fullImageUrl = s.fullImageUrl || s.url;
+    const metaEntry =
+      s.catalogEntry ||
+      (s.overlayIndex != null
+        ? { type: "remote", overlayIndex: s.overlayIndex }
+        : null);
+    if (metaEntry) {
+      itemData.overlayMeta = this.buildOverlayMeta(metaEntry);
+    }
+  }
+  /**
+   * URL usato nello zoom fullscreen: su Drive evita w3840 (lento e “a pezzi” su rete mobile).
+   * Usa sempre la slide corrente dello slideshow, non solo quella iniziale.
+   */
+  getZoomPrimaryImageUrl(itemData) {
+    if (!itemData) return "";
+    const cfg =
+      (typeof window !== "undefined" && window.__PORTFOLIO_CONFIG__) || {};
+    const slide = this.getGridItemCurrentSlide(itemData);
+    const fullStr = String(
+      (slide && slide.fullImageUrl) || itemData.fullImageUrl || ""
+    );
+    if (
+      cfg.useLocalMediaForZoom &&
+      fullStr &&
+      fullStr.indexOf("drive.google.com") === -1
+    ) {
+      return fullStr;
+    }
+    const drive = cfg.imagesFrom === "drive";
+    const id = this.getDriveFileIdFromGridItem(itemData);
+    if (drive && id) {
+      const mobile = pfMobileLayout();
+      const w = mobile
+        ? Math.min(
+            1920,
+            Math.max(800, Number(cfg.driveZoomMobileMaxWidth) || 1440)
+          )
+        : Math.min(
+            3200,
+            Math.max(1400, Number(cfg.driveZoomDesktopMaxWidth) || 2560)
+          );
+      return this.buildDriveThumbnailByFileId(id, w);
+    }
+    return (
+      (slide && slide.fullImageUrl) ||
+      itemData.fullImageUrl ||
+      itemData.imageUrl ||
+      (itemData.img && itemData.img.src) ||
+      ""
+    );
+  }
+  clearZoomPrefetchTimers() {
+    const list = this._zoomPrefetchTimers;
+    if (!list || !list.length) return;
+    for (let k = 0; k < list.length; k++) clearTimeout(list[k]);
+    this._zoomPrefetchTimers = [];
+  }
+  /**
+   * Precarica vicini in modo sfalsato: molte richieste parallele saturano il browser (6 conn/host)
+   * e la foto corrente resta in coda → schermo nero se lo zoom aspetta il prefetch.
+   */
+  preloadZoomNeighborImages(centerItem) {
+    const items = this.getZoomNavigableGridItems();
+    const i = items.indexOf(centerItem);
+    if (i < 0) return;
+    const cfg =
+      (typeof window !== "undefined" && window.__PORTFOLIO_CONFIG__) || {};
+    let radius = Number(cfg.zoomPrefetchNeighborRadius);
+    if (!Number.isFinite(radius) || radius < 1) {
+      radius = cfg.useLocalMediaForZoom ? 4 : 2;
+    }
+    radius = Math.min(12, Math.floor(radius));
+    this.clearZoomPrefetchTimers();
+    if (!this._zoomPrefetchTimers) this._zoomPrefetchTimers = [];
+    const staggerMs = Math.max(
+      40,
+      Math.min(200, Number(cfg.zoomPrefetchStaggerMs) || 90)
+    );
+    let slot = 0;
+    for (let d = -radius; d <= radius; d++) {
+      if (d === 0) continue;
+      const j = i + d;
+      if (j < 0 || j >= items.length) continue;
+      const url = this.getZoomPrimaryImageUrl(items[j]);
+      if (!url) continue;
+      const delay = slot * staggerMs;
+      slot += 1;
+      const id = setTimeout(() => {
+        if (!this.zoomState || !this.zoomState.isActive) return;
+        const im = new Image();
+        if (String(url).indexOf("drive.google.com") !== -1) {
+          im.referrerPolicy = "no-referrer";
+        }
+        im.decoding = "async";
+        im.src = url;
+      }, delay);
+      this._zoomPrefetchTimers.push(id);
+    }
+  }
+  /** URL mostrato sulla card editoriale (mobile + Drive → thumb ridotta). */
+  resolveEditorialCardDisplayUrl(entry, slide0Url) {
+    if (
+      pfMobileLayout() &&
+      entry &&
+      entry.driveFileId &&
+      ((typeof window !== "undefined" && window.__PORTFOLIO_CONFIG__) || {})
+        .imagesFrom === "drive"
+    ) {
+      const u = this.getDriveEditorialMobileThumbUrl(entry.driveFileId);
+      if (u) return u;
+    }
+    return slide0Url;
+  }
+  disconnectEditorialImageObserver() {
+    if (this._editorialImageObserver) {
+      this._editorialImageObserver.disconnect();
+      this._editorialImageObserver = null;
+    }
+  }
+  observeEditorialLazyImage(img) {
+    if (!img || !this.projectEditorialEl) return;
+    if (!this._editorialImageObserver) {
+      this._editorialImageObserver = new IntersectionObserver(
+        (records) => {
+          for (let i = 0; i < records.length; i++) {
+            const rec = records[i];
+            if (!rec.isIntersecting) continue;
+            const el = rec.target;
+            const ds = el.dataset.src;
+            if (ds) {
+              el.src = ds;
+              delete el.dataset.src;
+            }
+            this._editorialImageObserver.unobserve(el);
+          }
+        },
+        {
+          root: this.projectEditorialEl,
+          rootMargin: "70% 0px",
+          threshold: 0.01
+        }
+      );
+    }
+    this._editorialImageObserver.observe(img);
   }
   /** GSAP scale/translate: sul nodo interno se c’è, altrimenti sul wrapper (retrocompatibile). */
   getCanvasTransformTarget() {
@@ -1220,7 +1499,19 @@ class FashionGallery {
     const p = this.getActiveProjectRecord();
     return !!(p && p.layout === "editorial");
   }
+  /** Su mobile il testo viene spostato sotto la galleria; ripristina il DOM per desktop / teardown. */
+  ensureEditorialArticleInMain() {
+    const root = this.projectEditorialEl;
+    const articleEl = document.getElementById("projectEditorialArticle");
+    const main = root?.querySelector(".project-editorial__main");
+    if (!articleEl || !main) return;
+    if (articleEl.parentNode !== main) {
+      main.appendChild(articleEl);
+    }
+  }
   teardownProjectEditorialView() {
+    this.disconnectEditorialImageObserver();
+    this.ensureEditorialArticleInMain();
     document.body.classList.remove("project-editorial-active");
     const root = this.projectEditorialEl;
     if (root) {
@@ -1250,7 +1541,7 @@ class FashionGallery {
     if (offset % 2 === 0 && index + 1 < total) return "landscape";
     return "landscape-wide";
   }
-  appendEditorialCard(containerEl, entry, variant, itemIndex) {
+  appendEditorialCard(containerEl, entry, variant, itemIndex, editorialOpts) {
     if (!containerEl) return;
     const cfg =
       (typeof window !== "undefined" && window.__PORTFOLIO_CONFIG__) || {};
@@ -1262,10 +1553,46 @@ class FashionGallery {
     img.decoding = "async";
     if (driveImages) img.referrerPolicy = "no-referrer";
     const slides = this.buildSlideshowSlides(entry);
-    const slide0 = slides[0];
-    img.src = slide0.url;
-    img.alt = slide0.alt;
-    img.loading = variant === "finale" ? "eager" : "lazy";
+    let slideIdx = 0;
+    if (slides.length && entry && entry.indexInProject != null) {
+      const found = slides.findIndex(
+        (s) =>
+          s.catalogEntry &&
+          s.catalogEntry.indexInProject === entry.indexInProject
+      );
+      if (found >= 0) slideIdx = found;
+    }
+    const activeSlide = slides[slideIdx] || slides[0];
+    const displaySrc = this.resolveEditorialCardDisplayUrl(entry, activeSlide.url);
+    const deferLoad =
+      editorialOpts &&
+      editorialOpts.deferLoad === true &&
+      pfMobileLayout() &&
+      this.projectEditorialEl;
+    if (deferLoad) {
+      img.src = PF_EDITORIAL_IMG_PLACEHOLDER;
+      img.dataset.src = displaySrc;
+      img.loading = "lazy";
+    } else {
+      img.src = displaySrc;
+      img.loading =
+        variant === "finale"
+          ? "eager"
+          : itemIndex < 2 && containerEl === this.projectEditorialMobileGallery
+            ? "eager"
+            : "lazy";
+      if (
+        itemIndex === 0 &&
+        variant !== "finale" &&
+        containerEl === this.projectEditorialMobileGallery
+      ) {
+        img.setAttribute("fetchpriority", "high");
+      }
+    }
+    if (deferLoad) {
+      this.observeEditorialLazyImage(img);
+    }
+    img.alt = activeSlide.alt;
     btn.appendChild(img);
     containerEl.appendChild(btn);
     const itemData = {
@@ -1274,7 +1601,7 @@ class FashionGallery {
       slideViewport: btn,
       slideTrack: null,
       slideshowSlides: slides,
-      currentSlideIndex: 0,
+      currentSlideIndex: slideIdx,
       slideDelay: null,
       slideTween: null,
       slideshowPaused: true,
@@ -1294,16 +1621,16 @@ class FashionGallery {
       spanRows: 1,
       baseX: 0,
       baseY: 0,
-      imageUrl: slide0.url,
-      fullImageUrl: slide0.fullImageUrl,
+      imageUrl: displaySrc,
+      fullImageUrl: activeSlide.fullImageUrl,
       index: itemIndex,
       overlayMeta: this.buildOverlayMeta(
-        slide0.catalogEntry ||
+        activeSlide.catalogEntry ||
           (entry.type === "remote"
             ? {
                 type: "remote",
                 overlayIndex:
-                  slide0.overlayIndex ?? entry.overlayIndex ?? itemIndex
+                  activeSlide.overlayIndex ?? entry.overlayIndex ?? itemIndex
               }
             : entry)
       )
@@ -1319,6 +1646,9 @@ class FashionGallery {
     const titleEl = document.getElementById("projectEditorialTitle");
     const articleEl = document.getElementById("projectEditorialArticle");
     if (!root || !articleEl) return;
+
+    this.ensureEditorialArticleInMain();
+    this.disconnectEditorialImageObserver();
 
     this.gridContainer.innerHTML = "";
     this.gridItems = [];
@@ -1351,7 +1681,6 @@ class FashionGallery {
     if (right) right.innerHTML = "";
     if (mobileGal) {
       mobileGal.innerHTML = "";
-      mobileGal.hidden = pfMobileLayout() ? false : true;
     }
     const finaleEl = document.getElementById("projectEditorialFinale");
     if (finaleEl) finaleEl.innerHTML = "";
@@ -1361,6 +1690,10 @@ class FashionGallery {
     const finaleSeparate = n > 1;
     const stripCount = finaleSeparate ? n - 1 : 0;
 
+    if (mobileGal) {
+      mobileGal.hidden = !useMobile || stripCount === 0;
+    }
+
     for (let i = 0; i < stripCount; i++) {
       const v = this.pickEditorialCardVariant(i, stripCount);
       const target = useMobile
@@ -1368,13 +1701,25 @@ class FashionGallery {
         : i % 2 === 0
           ? left
           : right;
-      if (target) this.appendEditorialCard(target, entries[i], v, i);
+      if (target) {
+        this.appendEditorialCard(target, entries[i], v, i, {
+          deferLoad: useMobile && i >= 2
+        });
+      }
     }
 
     if (finaleEl && n > 0) {
       const last = entries[n - 1];
       const lastIdx = n - 1;
-      this.appendEditorialCard(finaleEl, last, "finale", lastIdx);
+      this.appendEditorialCard(finaleEl, last, "finale", lastIdx, {
+        deferLoad: useMobile && stripCount > 0
+      });
+    }
+
+    /* Mobile: titolo in alto, tutte le foto al centro, testo completo in fondo (scroll unico). */
+    if (useMobile && articleEl && root) {
+      const scroll = root.querySelector(".project-editorial__scroll");
+      if (scroll) scroll.appendChild(articleEl);
     }
 
     root.hidden = false;
@@ -1862,6 +2207,7 @@ class FashionGallery {
       itemData.img = img0;
     }
     if (img1) img1.removeAttribute("src");
+    this.syncGridItemUrlsToCurrentSlide(itemData);
   }
   stopGridItemSlideshow(itemData) {
     if (!itemData) return;
@@ -2348,6 +2694,7 @@ class FashionGallery {
       img1.removeAttribute("src");
       itemData.currentSlideIndex = target;
       itemData.img = img0;
+      this.syncGridItemUrlsToCurrentSlide(itemData);
       itemData.slideTween = null;
       if (Math.random() < 0.09) {
         itemData.slideDelay = gsap.delayedCall(0.12 + Math.random() * 0.22, () =>
@@ -2441,6 +2788,11 @@ class FashionGallery {
     const cfg =
       (typeof window !== "undefined" && window.__PORTFOLIO_CONFIG__) || {};
     const driveImages = cfg.imagesFrom === "drive";
+    const gridEagerCap =
+      cfg.gridImageEagerCount != null
+        ? Math.max(0, Math.floor(Number(cfg.gridImageEagerCount)))
+        : 14;
+    let gridThumbLoadIndex = 0;
 
     for (let i = 0; i < placements.length; i++) {
       const placement = placements[i];
@@ -2562,7 +2914,8 @@ class FashionGallery {
           const s0 = slides[startIdx] || slides[0];
           img.src = s0.url;
           img.alt = s0.alt;
-          img.loading = "eager";
+          img.loading =
+            gridThumbLoadIndex < gridEagerCap ? "eager" : "lazy";
         } else {
           img.loading = "lazy";
           if (slideCount > 1) {
@@ -2631,6 +2984,7 @@ class FashionGallery {
 
       this.gridContainer.appendChild(item);
       this.gridItems.push(itemData);
+      gridThumbLoadIndex += 1;
     }
     document.body.classList.toggle(
       "mobile-project-feed",
@@ -2716,15 +3070,14 @@ class FashionGallery {
     }
   }
   /**
-   * Overlay zoom: posiziona subito il box sulla miniatura, carica l’URL HD (Drive thumbnail
-   * grande o file locale), poi chiama onReady — così Flip.fit non parte con img vuota/broken.
+   * Overlay zoom: con Drive mostra subito la miniatura già in cache (griglia), poi passa
+   * a un thumbnail intermedio (non w3840) per meno attesa e meno rendering progressivo.
    */
-  createScalingOverlay(sourceImg, fullImageUrl, onReady) {
+  createScalingOverlay(sourceImg, primaryUrl, onReady) {
     const overlay = document.createElement("div");
     overlay.className = "scaling-image-overlay";
     const img = document.createElement("img");
     img.alt = sourceImg.alt;
-    img.referrerPolicy = "no-referrer";
     img.decoding = "async";
     overlay.appendChild(img);
     document.body.appendChild(overlay);
@@ -2739,7 +3092,24 @@ class FashionGallery {
 
     this.zoomState.scalingOverlay = overlay;
 
-    const preferred = fullImageUrl || sourceImg.src;
+    const quickUrl =
+      sourceImg &&
+      (sourceImg.currentSrc ||
+        sourceImg.src ||
+        (sourceImg.getAttribute && sourceImg.getAttribute("src")));
+    const primary = primaryUrl || quickUrl || "";
+    const quickUrlIsDrive =
+      quickUrl && String(quickUrl).indexOf("drive.google.com") !== -1;
+    if (quickUrlIsDrive) {
+      img.referrerPolicy = "no-referrer";
+    }
+    const useInstantThumb =
+      quickUrlIsDrive &&
+      quickUrl &&
+      primary &&
+      quickUrl !== primary &&
+      String(quickUrl).indexOf("data:") !== 0;
+
     let finished = false;
     const fire = () => {
       if (finished) return;
@@ -2747,8 +3117,43 @@ class FashionGallery {
       onReady(overlay);
     };
 
-    img.onload = () => fire();
+    const upgradeIfNeeded = () => {
+      if (!primary || img.src === primary) return;
+      const loader = new Image();
+      if (String(primary).indexOf("drive.google.com") !== -1) {
+        loader.referrerPolicy = "no-referrer";
+      }
+      loader.onload = () => {
+        if (this.zoomState.scalingOverlay !== overlay) return;
+        if (String(primary).indexOf("drive.google.com") === -1) {
+          img.removeAttribute("referrerpolicy");
+        } else {
+          img.referrerPolicy = "no-referrer";
+        }
+        img.src = primary;
+      };
+      loader.src = primary;
+    };
+
+    const onDecodedFire = () => {
+      const after = () => {
+        fire();
+        upgradeIfNeeded();
+      };
+      if (img.decode) {
+        img.decode().then(after).catch(after);
+      } else {
+        after();
+      }
+    };
+
+    img.onload = () => onDecodedFire();
     img.onerror = () => {
+      if (useInstantThumb && img.dataset.zoomTriedPrimary !== "1") {
+        img.dataset.zoomTriedPrimary = "1";
+        img.src = primary;
+        return;
+      }
       if (img.dataset.fallbackTried === "1") {
         fire();
         return;
@@ -2762,9 +3167,16 @@ class FashionGallery {
       }
     };
 
-    img.src = preferred;
-    if (img.complete && img.naturalWidth > 0) {
-      requestAnimationFrame(fire);
+    if (useInstantThumb) {
+      img.src = quickUrl;
+      if (img.complete && img.naturalWidth > 0) {
+        requestAnimationFrame(() => onDecodedFire());
+      }
+    } else {
+      img.src = primary;
+      if (img.complete && img.naturalWidth > 0) {
+        requestAnimationFrame(() => onDecodedFire());
+      }
     }
     setTimeout(fire, 12000);
 
@@ -2820,6 +3232,202 @@ class FashionGallery {
         delay: 0.2,
         stagger: 0.15
       });
+    }
+    this.preloadZoomNeighborImages(selectedItemData);
+  }
+  /** Item della vista corrente su cui ha senso avanzare nello zoom (ordine di griglia / serie). */
+  getZoomNavigableGridItems() {
+    const out = [];
+    for (let i = 0; i < this.gridItems.length; i++) {
+      const g = this.gridItems[i];
+      if (!g || !g.img || !g.element) continue;
+      const el = g.element;
+      if (el.closest && el.closest(".grid-item--project-blurb")) continue;
+      if (!g.fullImageUrl && !g.slideshowSlides?.length) continue;
+      out.push(g);
+    }
+    return out;
+  }
+  navigateZoomByDelta(delta) {
+    if (!this.zoomState.isActive || !this.zoomState.selectedItem) return;
+    const items = this.getZoomNavigableGridItems();
+    if (items.length < 2) return;
+    let i = items.indexOf(this.zoomState.selectedItem);
+    if (i < 0) i = 0;
+    const j = i + delta;
+    if (j < 0 || j >= items.length) return;
+    this.swapZoomToItem(items[j]);
+  }
+  refreshZoomTitleForZoomItem(itemData) {
+    gsap.killTweensOf("#imageSlideNumber span, #imageSlideTitle h1");
+    if (this.descriptionLines && this.descriptionLines.length) {
+      gsap.killTweensOf(this.descriptionLines);
+    }
+    this.updateTitleOverlayForItem(itemData);
+    if (this.imageTitleOverlay) {
+      this.imageTitleOverlay.classList.add("active");
+    }
+    gsap.fromTo(
+      "#imageSlideNumber span",
+      { opacity: 0, y: 10 },
+      { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }
+    );
+    gsap.fromTo(
+      "#imageSlideTitle h1",
+      { opacity: 0, y: 14 },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.38,
+        ease: "power2.out",
+        delay: 0.04
+      }
+    );
+    if (this.descriptionLines && this.descriptionLines.length) {
+      gsap.fromTo(
+        this.descriptionLines,
+        { opacity: 0, y: 12 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.34,
+          stagger: 0.06,
+          delay: 0.1,
+          ease: "power2.out"
+        }
+      );
+    }
+  }
+  swapZoomToItem(newItem) {
+    const overlay = this.zoomState.scalingOverlay;
+    if (
+      !overlay ||
+      !newItem ||
+      !this.zoomState.isActive ||
+      newItem === this.zoomState.selectedItem
+    ) {
+      return;
+    }
+    const items = this.getZoomNavigableGridItems();
+    if (items.indexOf(newItem) < 0) return;
+    const img = overlay.querySelector("img");
+    if (!img) return;
+    const nextUrl = this.getZoomPrimaryImageUrl(newItem);
+    if (!nextUrl) return;
+
+    this._zoomSwapGen = (this._zoomSwapGen || 0) + 1;
+    const myGen = this._zoomSwapGen;
+
+    const warm = new Image();
+    if (String(nextUrl).indexOf("drive.google.com") !== -1) {
+      warm.referrerPolicy = "no-referrer";
+    }
+    warm.src = nextUrl;
+
+    const prev = this.zoomState.selectedItem;
+    if (prev && prev.img) {
+      gsap.set(prev.img, { opacity: 1 });
+    }
+    if (newItem.img) {
+      gsap.set(newItem.img, { opacity: 0 });
+    }
+
+    gsap.killTweensOf(img);
+    gsap.to(img, {
+      opacity: 0,
+      duration: 0.15,
+      ease: "power2.in",
+      onComplete: () => {
+        if (myGen !== this._zoomSwapGen) return;
+        img.alt = (newItem.img && newItem.img.alt) || "";
+        if (String(nextUrl).indexOf("drive.google.com") !== -1) {
+          img.referrerPolicy = "no-referrer";
+        } else {
+          img.removeAttribute("referrerpolicy");
+        }
+        let faded = false;
+        const fadeIn = () => {
+          if (faded || myGen !== this._zoomSwapGen) return;
+          faded = true;
+          gsap.to(img, {
+            opacity: 1,
+            duration: 0.22,
+            ease: "power2.out"
+          });
+        };
+        const rawThumb = newItem.img && newItem.img.src;
+        const fallbackThumb =
+          rawThumb &&
+          rawThumb !== PF_EDITORIAL_IMG_PLACEHOLDER &&
+          String(rawThumb).indexOf("data:") !== 0
+            ? rawThumb
+            : newItem.fullImageUrl || newItem.imageUrl || rawThumb;
+        img.onload = () => fadeIn();
+        img.onerror = () => {
+          if (myGen !== this._zoomSwapGen) return;
+          if (fallbackThumb && img.src !== fallbackThumb) {
+            img.src = fallbackThumb;
+          } else {
+            fadeIn();
+          }
+        };
+        img.src = nextUrl;
+        if (img.complete && img.naturalWidth > 0) {
+          fadeIn();
+        }
+      }
+    });
+
+    this.zoomState.selectedItem = newItem;
+    this.refreshZoomTitleForZoomItem(newItem);
+    this.preloadZoomNeighborImages(newItem);
+  }
+  attachZoomNavigationControls() {
+    const ov = this.zoomState.scalingOverlay;
+    if (!ov) return;
+    ov.addEventListener("touchstart", this._zoomNavTouchStartBound, {
+      passive: true
+    });
+    ov.addEventListener("touchend", this._zoomNavTouchEndBound, {
+      passive: true
+    });
+  }
+  detachZoomNavigationControls() {
+    const ov = this.zoomState.scalingOverlay;
+    if (!ov) return;
+    ov.removeEventListener("touchstart", this._zoomNavTouchStartBound);
+    ov.removeEventListener("touchend", this._zoomNavTouchEndBound);
+    this._zoomNavTouchStartX = null;
+    this._zoomNavTouchStartY = null;
+  }
+  onZoomNavTouchStart(e) {
+    if (!this.zoomState.isActive || !e.touches || e.touches.length !== 1) {
+      return;
+    }
+    this._zoomNavTouchStartX = e.touches[0].clientX;
+    this._zoomNavTouchStartY = e.touches[0].clientY;
+  }
+  onZoomNavTouchEnd(e) {
+    if (!this.zoomState.isActive || this._zoomNavTouchStartX == null) {
+      return;
+    }
+    const t = e.changedTouches && e.changedTouches[0];
+    if (!t) {
+      this._zoomNavTouchStartX = null;
+      this._zoomNavTouchStartY = null;
+      return;
+    }
+    const dx = t.clientX - this._zoomNavTouchStartX;
+    const dy = t.clientY - (this._zoomNavTouchStartY || 0);
+    this._zoomNavTouchStartX = null;
+    this._zoomNavTouchStartY = null;
+    const threshold = 52;
+    if (Math.abs(dx) < threshold) return;
+    if (Math.abs(dx) < Math.abs(dy) * 1.15) return;
+    if (dx < 0) {
+      this.navigateZoomByDelta(1);
+    } else {
+      this.navigateZoomByDelta(-1);
     }
   }
   enterZoomMode(selectedItemData) {
@@ -2893,9 +3501,10 @@ class FashionGallery {
 
     this.createScalingOverlay(
       selectedItemData.img,
-      selectedItemData.fullImageUrl,
+      this.getZoomPrimaryImageUrl(selectedItemData),
       startFlip
     );
+    this.attachZoomNavigationControls();
     if (this.controlsContainer) {
       this.controlsContainer.classList.add("split-mode");
     }
@@ -2914,14 +3523,15 @@ class FashionGallery {
       }
     );
     this.closeButton.classList.add("active");
-    // Add event listeners
-    document
-      .getElementById("splitLeft")
-      .addEventListener("click", this.handleSplitAreaClick.bind(this));
-    document
-      .getElementById("splitRight")
-      .addEventListener("click", this.handleSplitAreaClick.bind(this));
-    document.addEventListener("keydown", this.handleZoomKeys.bind(this));
+    const splitLeft = document.getElementById("splitLeft");
+    const splitRight = document.getElementById("splitRight");
+    if (splitLeft) {
+      splitLeft.addEventListener("click", this._handleSplitAreaClickBound);
+    }
+    if (splitRight) {
+      splitRight.addEventListener("click", this._handleSplitAreaClickBound);
+    }
+    document.addEventListener("keydown", this._handleZoomKeysBound);
   }
   handleSplitAreaClick(e) {
     if (e.target === e.currentTarget) {
@@ -2935,14 +3545,18 @@ class FashionGallery {
       !this.zoomState.scalingOverlay
     )
       return;
+    this.clearZoomPrefetchTimers();
     this.soundSystem.play("close");
-    document.removeEventListener("keydown", this.handleZoomKeys);
+    this.detachZoomNavigationControls();
+    document.removeEventListener("keydown", this._handleZoomKeysBound);
     const splitLeft = document.getElementById("splitLeft");
     const splitRight = document.getElementById("splitRight");
-    if (splitLeft)
-      splitLeft.removeEventListener("click", this.handleSplitAreaClick);
-    if (splitRight)
-      splitRight.removeEventListener("click", this.handleSplitAreaClick);
+    if (splitLeft) {
+      splitLeft.removeEventListener("click", this._handleSplitAreaClickBound);
+    }
+    if (splitRight) {
+      splitRight.removeEventListener("click", this._handleSplitAreaClickBound);
+    }
     const splitContainer = this.splitScreenContainer;
     const selectedElement = this.zoomState.selectedItem.element;
     const selectedImg = this.zoomState.selectedItem.img;
@@ -3046,6 +3660,16 @@ class FashionGallery {
     if (!this.zoomState.isActive) return;
     if (e.key === "Escape") {
       this.exitZoomMode();
+      return;
+    }
+    if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      this.navigateZoomByDelta(-1);
+      return;
+    }
+    if (e.key === "ArrowRight") {
+      e.preventDefault();
+      this.navigateZoomByDelta(1);
     }
   }
   calculateBounds() {
@@ -3468,6 +4092,14 @@ class FashionGallery {
       setTimeout(() => {
         this.resetPosition();
         this.initDraggable();
+        if (
+          this.isProjectEditorialLayoutActive() &&
+          this.projectEditorialEl &&
+          !this.projectEditorialEl.hidden &&
+          !(this.zoomState && this.zoomState.isActive)
+        ) {
+          this.buildProjectEditorialView();
+        }
       }, 100);
     });
     document.addEventListener("mouseleave", () => this.handleMouseLeave());
