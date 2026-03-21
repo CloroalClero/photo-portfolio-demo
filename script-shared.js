@@ -662,6 +662,30 @@ class FashionGallery {
       ""
     );
   }
+  /**
+   * Thumb griglia / imageUrl: visibile subito nello swipe zoom mentre il full-res (es. webp locale) scarica.
+   */
+  pickZoomSwapThumbUrl(newItem) {
+    if (!newItem) return "";
+    const tryU = (u) => {
+      const s = String(u || "").trim();
+      if (
+        !s ||
+        s === PF_EDITORIAL_IMG_PLACEHOLDER ||
+        s.indexOf("data:") === 0
+      ) {
+        return "";
+      }
+      return s;
+    };
+    const fromImg =
+      newItem.img &&
+      (newItem.img.currentSrc ||
+        (newItem.img.getAttribute && newItem.img.getAttribute("src")));
+    const a = tryU(fromImg);
+    if (a) return a;
+    return tryU(newItem.imageUrl);
+  }
   clearZoomPrefetchTimers() {
     const list = this._zoomPrefetchTimers;
     if (!list || !list.length) return;
@@ -689,15 +713,15 @@ class FashionGallery {
       40,
       Math.min(200, Number(cfg.zoomPrefetchStaggerMs) || 90)
     );
-    let slot = 0;
+    let farSlot = 0;
     for (let d = -radius; d <= radius; d++) {
       if (d === 0) continue;
       const j = i + d;
       if (j < 0 || j >= items.length) continue;
       const url = this.getZoomPrimaryImageUrl(items[j]);
       if (!url) continue;
-      const delay = slot * staggerMs;
-      slot += 1;
+      const delay =
+        Math.abs(d) <= 2 ? 0 : 50 + farSlot++ * staggerMs;
       const id = setTimeout(() => {
         if (!this.zoomState || !this.zoomState.isActive) return;
         const im = new Image();
@@ -3298,6 +3322,13 @@ class FashionGallery {
       );
     }
   }
+  clearZoomOverlayHoldBackground(overlayEl) {
+    if (!overlayEl || !overlayEl.style) return;
+    overlayEl.style.backgroundImage = "";
+    overlayEl.style.backgroundSize = "";
+    overlayEl.style.backgroundPosition = "";
+    overlayEl.style.backgroundRepeat = "";
+  }
   swapZoomToItem(newItem) {
     const overlay = this.zoomState.scalingOverlay;
     if (
@@ -3312,17 +3343,17 @@ class FashionGallery {
     if (items.indexOf(newItem) < 0) return;
     const img = overlay.querySelector("img");
     if (!img) return;
-    const nextUrl = this.getZoomPrimaryImageUrl(newItem);
-    if (!nextUrl) return;
+    const fullUrl = this.getZoomPrimaryImageUrl(newItem);
+    if (!fullUrl) return;
 
     this._zoomSwapGen = (this._zoomSwapGen || 0) + 1;
     const myGen = this._zoomSwapGen;
 
     const warm = new Image();
-    if (String(nextUrl).indexOf("drive.google.com") !== -1) {
+    if (String(fullUrl).indexOf("drive.google.com") !== -1) {
       warm.referrerPolicy = "no-referrer";
     }
-    warm.src = nextUrl;
+    warm.src = fullUrl;
 
     const prev = this.zoomState.selectedItem;
     if (prev && prev.img) {
@@ -3332,51 +3363,118 @@ class FashionGallery {
       gsap.set(newItem.img, { opacity: 0 });
     }
 
+    const thumbUrl = this.pickZoomSwapThumbUrl(newItem);
+    const useInstantThumb =
+      thumbUrl &&
+      thumbUrl !== fullUrl &&
+      String(thumbUrl).indexOf("data:") !== 0;
+
     gsap.killTweensOf(img);
-    gsap.to(img, {
-      opacity: 0,
-      duration: 0.15,
-      ease: "power2.in",
-      onComplete: () => {
-        if (myGen !== this._zoomSwapGen) return;
-        img.alt = (newItem.img && newItem.img.alt) || "";
-        if (String(nextUrl).indexOf("drive.google.com") !== -1) {
-          img.referrerPolicy = "no-referrer";
-        } else {
-          img.removeAttribute("referrerpolicy");
-        }
-        let faded = false;
-        const fadeIn = () => {
-          if (faded || myGen !== this._zoomSwapGen) return;
-          faded = true;
-          gsap.to(img, {
-            opacity: 1,
-            duration: 0.22,
-            ease: "power2.out"
-          });
-        };
-        const rawThumb = newItem.img && newItem.img.src;
-        const fallbackThumb =
-          rawThumb &&
-          rawThumb !== PF_EDITORIAL_IMG_PLACEHOLDER &&
-          String(rawThumb).indexOf("data:") !== 0
-            ? rawThumb
-            : newItem.fullImageUrl || newItem.imageUrl || rawThumb;
-        img.onload = () => fadeIn();
-        img.onerror = () => {
-          if (myGen !== this._zoomSwapGen) return;
-          if (fallbackThumb && img.src !== fallbackThumb) {
-            img.src = fallbackThumb;
-          } else {
-            fadeIn();
-          }
-        };
-        img.src = nextUrl;
-        if (img.complete && img.naturalWidth > 0) {
-          fadeIn();
-        }
+    img.alt = (newItem.img && newItem.img.alt) || "";
+
+    const applyReferrerForUrl = (url) => {
+      if (String(url).indexOf("drive.google.com") !== -1) {
+        img.referrerPolicy = "no-referrer";
+      } else {
+        img.removeAttribute("referrerpolicy");
       }
-    });
+    };
+
+    const fadeInVisible = () => {
+      if (myGen !== this._zoomSwapGen) return;
+      gsap.to(img, {
+        opacity: 1,
+        duration: 0.14,
+        ease: "power2.out"
+      });
+    };
+
+    if (useInstantThumb) {
+      this.clearZoomOverlayHoldBackground(overlay);
+      applyReferrerForUrl(thumbUrl);
+      gsap.set(img, { opacity: 1 });
+      img.onerror = () => {
+        if (myGen !== this._zoomSwapGen) return;
+        applyReferrerForUrl(fullUrl);
+        img.src = fullUrl;
+      };
+      img.onload = null;
+      img.src = thumbUrl;
+
+      const loader = new Image();
+      if (String(fullUrl).indexOf("drive.google.com") !== -1) {
+        loader.referrerPolicy = "no-referrer";
+      }
+      const swapToFull = () => {
+        if (myGen !== this._zoomSwapGen) return;
+        applyReferrerForUrl(fullUrl);
+        overlay.style.backgroundImage =
+          "url(" + JSON.stringify(String(thumbUrl)) + ")";
+        overlay.style.backgroundSize = "cover";
+        overlay.style.backgroundPosition = "center center";
+        overlay.style.backgroundRepeat = "no-repeat";
+        gsap.set(img, { opacity: 0 });
+        let fullSwapDone = false;
+        const finishFull = () => {
+          if (fullSwapDone || myGen !== this._zoomSwapGen) return;
+          fullSwapDone = true;
+          this.clearZoomOverlayHoldBackground(overlay);
+          gsap.set(img, { opacity: 1 });
+          img.onload = null;
+          img.onerror = null;
+        };
+        const revertThumb = () => {
+          if (fullSwapDone || myGen !== this._zoomSwapGen) return;
+          fullSwapDone = true;
+          this.clearZoomOverlayHoldBackground(overlay);
+          applyReferrerForUrl(thumbUrl);
+          img.onload = null;
+          img.onerror = null;
+          gsap.set(img, { opacity: 1 });
+          img.src = thumbUrl;
+        };
+        img.onload = finishFull;
+        img.onerror = revertThumb;
+        img.src = fullUrl;
+        if (img.complete && img.naturalWidth > 0) {
+          finishFull();
+        }
+      };
+      loader.onload = () => {
+        if (myGen !== this._zoomSwapGen) return;
+        if (!loader.naturalWidth) return;
+        swapToFull();
+      };
+      loader.onerror = () => {};
+      loader.src = fullUrl;
+      if (loader.complete && loader.naturalWidth > 0) {
+        swapToFull();
+      }
+    } else if (thumbUrl && thumbUrl === fullUrl) {
+      applyReferrerForUrl(fullUrl);
+      gsap.set(img, { opacity: 1 });
+      img.src = fullUrl;
+    } else {
+      applyReferrerForUrl(fullUrl);
+      gsap.set(img, { opacity: 0 });
+      let shown = false;
+      const fadeIn = () => {
+        if (shown || myGen !== this._zoomSwapGen) return;
+        shown = true;
+        fadeInVisible();
+      };
+      img.onload = () => fadeIn();
+      img.onerror = () => fadeIn();
+      img.src = fullUrl;
+      if (img.complete && img.naturalWidth > 0) {
+        fadeIn();
+      }
+      const safetyMs = 14000;
+      setTimeout(() => {
+        if (myGen !== this._zoomSwapGen) return;
+        fadeIn();
+      }, safetyMs);
+    }
 
     this.zoomState.selectedItem = newItem;
     this.refreshZoomTitleForZoomItem(newItem);
@@ -3546,6 +3644,7 @@ class FashionGallery {
     )
       return;
     this.clearZoomPrefetchTimers();
+    this.clearZoomOverlayHoldBackground(this.zoomState.scalingOverlay);
     this.soundSystem.play("close");
     this.detachZoomNavigationControls();
     document.removeEventListener("keydown", this._handleZoomKeysBound);
