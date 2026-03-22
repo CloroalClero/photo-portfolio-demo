@@ -74,4 +74,38 @@ Breakpoint principale: **900px**
 - Desktop → layout immersivo editoriale
 
 ---
+📸 Preview
+
+👉 L'immagine sopra rappresenta il concept visivo del progetto:
+un mix tra fotografia, design editoriale e sviluppo front-end.
+
+🎯 Obiettivo del progetto
+
+Questo non è solo un esercizio tecnico, ma un lavoro orientato a:
+
+portfolio professionale
+presentazione a clienti
+dimostrazione capacità UI/UX + sviluppo
+📌 Note
+
+Questo progetto è stato sviluppato senza framework per mantenere:
+
+controllo totale sulla UI
+performance elevate
+codice pulito e modulare
+👤 Autore
+
+Michel Branche
+Frontend Developer & Creative
+
+Portfolio: https://devmichelbranche.netlify.app/
+GitHub: https://github.com/MichelBranche
+🔥 Extra
+
+Il progetto include:
+
+sistema di layout multipli
+gestione immagini avanzata
+animazioni custom GSAP
+architettura scalabile per altri portfolio
 ---
