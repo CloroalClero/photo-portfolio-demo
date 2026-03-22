@@ -17,7 +17,7 @@ Ogni serie ha una cartella **`portfolio/projects/<categoria>/<id>/`** (lo `id` c
   - **`summary`** — testo mostrato nella vista serie (blurb griglia / intestazioni). Se vuoto, si può usare **`blurb`** come ripiego breve. Due a capo consecutivi nel testo creano paragrafi separati (`<p>`).
   - **`summaryParagraphs`** *(opzionale, array di stringhe)* — per progetti **`horizontal-mixed`** (es. NUDE): paragrafi nella colonna testo; `getProjectSummaryText` li unisce per la griglia / blurbs.
   - **`blurbSpanRows`** *(opzionale, numero ≥ 2)* — altezza in celle della fascia testo in vista progetto (default 2); utile per testi lunghi su desktop.
-- **`mobile.css`** *(opzionale)* — stili solo su mobile quando quella serie è attiva. Caricato automaticamente da `script-shared.js` tramite `__PORTFOLIO_PROJECT_PATH_BY_ID__` (404 se assente: nessun problema).
+- **`mobile.css`** *(opzionale)* — stili solo su mobile quando quella serie è attiva. Caricato automaticamente da `js/modules/fashion-gallery.js` tramite `__PORTFOLIO_PROJECT_PATH_BY_ID__` (404 se assente: nessun problema).
 
 Immagini restano in **`media/projects/<NomeCartella>/`** come prima (`folder` in `data.js`).
 

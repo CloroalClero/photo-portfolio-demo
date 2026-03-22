@@ -1,68 +1,22 @@
-// Register GSAP plugins
+import {
+  ENABLE_GRID_CARD_DRIFT,
+  PF_EDITORIAL_IMG_PLACEHOLDER,
+  pfMobileLayout,
+  portfolioProjectDataDir,
+  reorderPortfolioProjectsToCanonicalOrder,
+} from "./pf-helpers.js";
+import {
+  pfGridEagerImageCap,
+  pfPerformanceTier,
+  pfPrefersReducedMotion,
+  pfSlideshowPauseMultiplier,
+  pfSlideshowSpeedMultiplier,
+} from "./pf-performance.js";
+import { dismissHomeLoading, homeLoadingFlags } from "./home-loading.js";
+
 gsap.registerPlugin(CustomEase, Flip);
 
-/** Drift casuale delle card e “formation wave” in griglia (false = griglia ferma). */
-const ENABLE_GRID_CARD_DRIFT = false;
-
-/**
- * Breakpoint allineato a style-mobile.css (max-width: 900px).
- * script-mobile.js / script-desktop.js impostano __PF_IS_MOBILE_LAYOUT__ prima del bundle.
- */
-function pfMobileLayout() {
-  if (typeof window.__PF_IS_MOBILE_LAYOUT__ === "boolean") {
-    return window.__PF_IS_MOBILE_LAYOUT__;
-  }
-  return typeof window.matchMedia === "function"
-    ? window.matchMedia("(max-width: 900px)").matches
-    : window.innerWidth <= 900;
-}
-
-/** Placeholder 1×1 per img editoriali mobile in attesa dell’IntersectionObserver. */
-const PF_EDITORIAL_IMG_PLACEHOLDER =
-  "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
-
-/**
- * Allinea __PORTFOLIO_PROJECTS__ a __PORTFOLIO_PROJECT_ORDER__ (N.1… come da registry).
- * Progetti non listati in ORDER restano in coda (es. voci solo da manifest Drive).
- */
-function reorderPortfolioProjectsToCanonicalOrder() {
-  const order = window.__PORTFOLIO_PROJECT_ORDER__;
-  const list = window.__PORTFOLIO_PROJECTS__;
-  if (!Array.isArray(order) || order.length === 0) return;
-  if (!Array.isArray(list) || list.length === 0) return;
-  const byId = Object.create(null);
-  for (let i = 0; i < list.length; i++) {
-    const p = list[i];
-    if (p && p.id != null) byId[String(p.id)] = p;
-  }
-  const next = [];
-  for (let i = 0; i < order.length; i++) {
-    const id = String(order[i]);
-    const p = byId[id];
-    if (p) {
-      next.push(p);
-      delete byId[id];
-    }
-  }
-  const extra = Object.keys(byId).sort();
-  for (let i = 0; i < extra.length; i++) {
-    next.push(byId[extra[i]]);
-  }
-  window.__PORTFOLIO_PROJECTS__ = next;
-}
-
-/** Base path URL per `data.js` / `mobile.css` del progetto: `portfolio/projects/<categoria>/<id>`. */
-function portfolioProjectDataDir(projectId) {
-  const key = String(projectId).replace(/[^a-zA-Z0-9_-]/g, "");
-  if (!key) return "";
-  const map = window.__PORTFOLIO_PROJECT_PATH_BY_ID__;
-  const rel = map && map[key];
-  return rel
-    ? `portfolio/projects/${rel}`
-    : `portfolio/projects/${key}`;
-}
-
-class FashionGallery {
+export class FashionGallery {
   constructor() {
     // DOM elements
     this.viewport = document.getElementById("viewport");
@@ -130,6 +84,10 @@ class FashionGallery {
       document.getElementById("projectLaureaGallery");
     this.laureaHeroItemData = null;
     this._laureaRevealIO = null;
+    this.perfTier = pfPerformanceTier();
+    this.prefersReducedMotion = pfPrefersReducedMotion();
+    this._soundWaveRafId = null;
+    this._soundWaveIdleTimer = null;
     // Create custom eases
     this.customEase = CustomEase.create("smooth", ".87,0,.13,1");
     this.centerEase = CustomEase.create("center", ".25,.46,.45,.94");
@@ -221,9 +179,10 @@ class FashionGallery {
         }
       }
     };
-    // Preload sounds
+    const soundPreload =
+      this.perfTier >= 2 ? "none" : this.perfTier >= 1 ? "metadata" : "auto";
     Object.values(this.soundSystem.sounds).forEach((audio) => {
-      audio.preload = "auto";
+      audio.preload = soundPreload;
       audio.volume = 0.3;
     });
     // Initialize sound wave canvas animation
@@ -232,12 +191,22 @@ class FashionGallery {
   initSoundWave() {
     const canvas = document.getElementById("soundWaveCanvas");
     if (!canvas) return;
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d", { alpha: true });
     const width = 32;
     const height = 16;
     const centerY = Math.floor(height / 2);
     let startTime = Date.now();
     let currentAmplitude = this.soundSystem.enabled ? 1 : 0;
+    const muteColor = "#D9C4AA";
+    const drawStaticMute = () => {
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = muteColor;
+      ctx.fillRect(0, centerY, width, 2);
+    };
+    if (this.prefersReducedMotion || this.perfTier >= 2) {
+      drawStaticMute();
+      return;
+    }
     const interpolateColor = (color1, color2, factor) => {
       const r1 = parseInt(color1.substring(1, 3), 16);
       const g1 = parseInt(color1.substring(3, 5), 16);
@@ -256,39 +225,64 @@ class FashionGallery {
         .padStart(2, "0");
       return `#${r}${g}${b}`;
     };
+    const primaryColor = "#2C1B14";
+    const accentColor = "#A64B23";
+    const scheduleFrame = (fn) => {
+      if (this._soundWaveRafId != null) {
+        cancelAnimationFrame(this._soundWaveRafId);
+        this._soundWaveRafId = null;
+      }
+      if (this._soundWaveIdleTimer != null) {
+        window.clearTimeout(this._soundWaveIdleTimer);
+        this._soundWaveIdleTimer = null;
+      }
+      if (document.hidden) {
+        this._soundWaveIdleTimer = window.setTimeout(fn, 800);
+        return;
+      }
+      const waveActive =
+        this.soundSystem.enabled || currentAmplitude >= 0.02;
+      if (!waveActive) {
+        this._soundWaveIdleTimer = window.setTimeout(fn, 320);
+        return;
+      }
+      if (this.perfTier >= 1) {
+        this._soundWaveIdleTimer = window.setTimeout(fn, 36);
+        return;
+      }
+      this._soundWaveRafId = requestAnimationFrame(fn);
+    };
     const animate = () => {
       const targetAmplitude = this.soundSystem.enabled ? 1 : 0;
       currentAmplitude += (targetAmplitude - currentAmplitude) * 0.08;
       ctx.clearRect(0, 0, width, height);
       const time = (Date.now() - startTime) / 1000;
       const muteFactor = 1 - currentAmplitude;
-      const primaryColor = "#2C1B14";
-      const accentColor = "#A64B23";
-      const muteColor = "#D9C4AA";
       if (!this.soundSystem.enabled && currentAmplitude < 0.01) {
         ctx.fillStyle = muteColor;
         ctx.fillRect(0, centerY, width, 2);
-      } else {
-        ctx.fillStyle = interpolateColor(primaryColor, muteColor, muteFactor);
-        for (let i = 0; i < width; i++) {
-          const x = i - width / 2;
-          const e = Math.exp((-x * x) / 50);
-          const y =
-            centerY +
-            Math.cos(x * 0.4 - time * 8) * e * height * 0.35 * currentAmplitude;
-          ctx.fillRect(i, Math.round(y), 1, 2);
-        }
-        ctx.fillStyle = interpolateColor(accentColor, muteColor, muteFactor);
-        for (let i = 0; i < width; i++) {
-          const x = i - width / 2;
-          const e = Math.exp((-x * x) / 80);
-          const y =
-            centerY +
-            Math.cos(x * 0.3 - time * 5) * e * height * 0.25 * currentAmplitude;
-          ctx.fillRect(i, Math.round(y), 1, 2);
-        }
+        scheduleFrame(animate);
+        return;
       }
-      requestAnimationFrame(animate);
+      ctx.fillStyle = interpolateColor(primaryColor, muteColor, muteFactor);
+      for (let i = 0; i < width; i++) {
+        const x = i - width / 2;
+        const e = Math.exp((-x * x) / 50);
+        const y =
+          centerY +
+          Math.cos(x * 0.4 - time * 8) * e * height * 0.35 * currentAmplitude;
+        ctx.fillRect(i, Math.round(y), 1, 2);
+      }
+      ctx.fillStyle = interpolateColor(accentColor, muteColor, muteFactor);
+      for (let i = 0; i < width; i++) {
+        const x = i - width / 2;
+        const e = Math.exp((-x * x) / 80);
+        const y =
+          centerY +
+          Math.cos(x * 0.3 - time * 5) * e * height * 0.25 * currentAmplitude;
+        ctx.fillRect(i, Math.round(y), 1, 2);
+      }
+      scheduleFrame(animate);
     };
     animate();
   }
@@ -1161,9 +1155,7 @@ class FashionGallery {
     const root = this.projectHorizontalEl;
     if (!root) return;
     this.teardownProjectHorizontalReveal();
-    const reduce =
-      typeof window.matchMedia === "function" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const reduce = this.prefersReducedMotion || this.perfTier >= 2;
     root.dataset.animate = reduce ? "0" : "1";
     const nodes = root.querySelectorAll(".project-h__p, .project-h-card");
     if (reduce) {
@@ -5077,10 +5069,12 @@ class FashionGallery {
 
     this.applyGridVisibleAndStartDrift({ entranceControls: false });
 
+    const afterRebuildMs =
+      this.perfTier >= 2 ? 380 : this.perfTier >= 1 ? 720 : 1500;
     setTimeout(() => {
       this.initDraggable();
       this.setupViewportObserver();
-    }, 1500);
+    }, afterRebuildMs);
   }
   /** Dopo rebuild: assicura zoom/statiche coerenti se è attivo un filtro progetto. */
   syncFilteredProjectGridState() {
@@ -5648,7 +5642,9 @@ class FashionGallery {
     if (!itemData.slideshowSlides || itemData.slideshowSlides.length <= 1)
       return;
     if (itemData.slideDelay) itemData.slideDelay.kill();
-    const mul = itemData.slidePauseMul ?? 1;
+    const mul =
+      (itemData.slidePauseMul ?? 1) *
+      pfSlideshowPauseMultiplier(this.perfTier);
     const base = 0.65 + Math.random() ** 0.4 * 7.2;
     const jitter = (Math.random() - 0.5) * 2.4;
     const pause = Math.max(0.35, (base + jitter) * mul);
@@ -5680,7 +5676,28 @@ class FashionGallery {
     img1.src = st.url;
     img1.alt = st.alt;
 
-    const spd = itemData.slideSpeedMul ?? 1;
+    if (this.prefersReducedMotion || this.perfTier >= 2) {
+      img0.src = st.url;
+      img0.alt = st.alt;
+      gsap.set(slideTrack, { x: 0 });
+      img1.removeAttribute("src");
+      itemData.currentSlideIndex = target;
+      itemData.img = img0;
+      this.syncGridItemUrlsToCurrentSlide(itemData);
+      itemData.slideTween = null;
+      if (Math.random() < 0.09) {
+        itemData.slideDelay = gsap.delayedCall(0.12 + Math.random() * 0.22, () =>
+          this.advanceGridItemSlide(itemData)
+        );
+      } else {
+        this.scheduleNextSlideshowAdvance(itemData);
+      }
+      return;
+    }
+
+    const spd =
+      (itemData.slideSpeedMul ?? 1) *
+      pfSlideshowSpeedMultiplier(this.perfTier);
     let duration = 0.38 + Math.random() ** 0.85 * 1.15;
     if (Math.random() < 0.14) {
       duration = 0.035 + Math.random() * 0.09;
@@ -5688,7 +5705,11 @@ class FashionGallery {
       duration = 1.05 + Math.random() * 0.55;
     }
     duration /= spd;
-    const ease = this.randomSlideshowEase();
+    if (this.perfTier >= 1) {
+      duration = Math.min(duration, 0.55);
+    }
+    const ease =
+      this.perfTier >= 1 ? "power2.inOut" : this.randomSlideshowEase();
 
     const finishForward = () => {
       img0.src = st.url;
@@ -5854,10 +5875,11 @@ class FashionGallery {
     const cfg =
       (typeof window !== "undefined" && window.__PORTFOLIO_CONFIG__) || {};
     const driveImages = cfg.imagesFrom === "drive";
-    const gridEagerCap =
+    const gridEagerDefault =
       cfg.gridImageEagerCount != null
         ? Math.max(0, Math.floor(Number(cfg.gridImageEagerCount)))
         : 14;
+    const gridEagerCap = pfGridEagerImageCap(gridEagerDefault, this.perfTier);
     let gridThumbLoadIndex = 0;
 
     for (let i = 0; i < placements.length; i++) {
@@ -6061,6 +6083,26 @@ class FashionGallery {
     if (this.viewportObserver) {
       this.viewportObserver.disconnect();
     }
+    const fadeInDur =
+      this.prefersReducedMotion || this.perfTier >= 2
+        ? 0
+        : this.perfTier >= 1
+          ? 0.32
+          : 0.6;
+    const fadeOutDur =
+      this.prefersReducedMotion || this.perfTier >= 2
+        ? 0
+        : this.perfTier >= 1
+          ? 0.28
+          : 0.6;
+    const ioRootMargin =
+      this.isProjectFilterActive()
+        ? "0px"
+        : this.perfTier >= 2
+          ? "5%"
+          : this.perfTier >= 1
+            ? "8%"
+            : "10%";
     this.viewportObserver = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -6078,10 +6120,12 @@ class FashionGallery {
             entry.target.classList.remove("out-of-view");
             if (this.isProjectFilterActive()) {
               gsap.set(entry.target, { opacity: 1 });
+            } else if (fadeInDur <= 0) {
+              gsap.set(entry.target, { opacity: 1 });
             } else {
               gsap.to(entry.target, {
                 opacity: 1,
-                duration: 0.6,
+                duration: fadeInDur,
                 ease: "power2.out"
               });
             }
@@ -6097,11 +6141,15 @@ class FashionGallery {
               gsap.set(entry.target, { opacity: 1 });
             } else {
               entry.target.classList.add("out-of-view");
-              gsap.to(entry.target, {
-                opacity: 0.1,
-                duration: 0.6,
-                ease: "power2.out"
-              });
+              if (fadeOutDur <= 0) {
+                gsap.set(entry.target, { opacity: 0.1 });
+              } else {
+                gsap.to(entry.target, {
+                  opacity: 0.1,
+                  duration: fadeOutDur,
+                  ease: "power2.out"
+                });
+              }
             }
             if (itemData) {
               this.pauseGridItemSlideshow(itemData);
@@ -6113,7 +6161,7 @@ class FashionGallery {
       {
         root: this.viewport || null,
         threshold: this.isProjectFilterActive() ? 0.05 : 0.15,
-        rootMargin: this.isProjectFilterActive() ? "0px" : "10%"
+        rootMargin: ioRootMargin
       }
     );
     // Observe all grid items
@@ -6911,6 +6959,14 @@ class FashionGallery {
     );
     const switchElement = this.controlsContainer.querySelector(".switch");
     const soundToggle = this.controlsContainer.querySelector(".sound-toggle");
+    if (this.prefersReducedMotion || this.perfTier >= 2) {
+      gsap.set(this.controlsContainer, { opacity: 1 });
+      if (percentageIndicator) gsap.set(percentageIndicator, { x: 0 });
+      if (switchElement) gsap.set(switchElement, { y: 0 });
+      if (soundToggle) gsap.set(soundToggle, { x: 0 });
+      this.controlsContainer.classList.add("visible");
+      return;
+    }
     gsap.set(this.controlsContainer, {
       opacity: 0
     });
@@ -6929,12 +6985,14 @@ class FashionGallery {
         x: "3em"
       });
     }
+    const navDur = this.perfTier >= 1 ? 0.32 : 0.5;
+    const pieceDur = this.perfTier >= 1 ? 0.14 : 0.2;
     const navTimeline = gsap.timeline();
     navTimeline.to(
       this.controlsContainer,
       {
         opacity: 1,
-        duration: 0.5,
+        duration: navDur,
         ease: "power2.out"
       },
       0
@@ -6944,10 +7002,10 @@ class FashionGallery {
         percentageIndicator,
         {
           x: 0,
-          duration: 0.2,
+          duration: pieceDur,
           ease: "power2.out"
         },
-        0.25
+        this.perfTier >= 1 ? 0.12 : 0.25
       );
     }
     if (switchElement) {
@@ -6955,10 +7013,10 @@ class FashionGallery {
         switchElement,
         {
           y: 0,
-          duration: 0.2,
+          duration: pieceDur,
           ease: "power2.out"
         },
-        0.3
+        this.perfTier >= 1 ? 0.14 : 0.3
       );
     }
     if (soundToggle) {
@@ -6966,10 +7024,16 @@ class FashionGallery {
         soundToggle,
         {
           x: 0,
-          duration: 0.2,
+          duration: pieceDur,
           ease: "power2.out"
         },
-        switchElement ? 0.35 : 0.3
+        switchElement
+          ? this.perfTier >= 1
+            ? 0.16
+            : 0.35
+          : this.perfTier >= 1
+            ? 0.14
+            : 0.3
       );
     }
     this.controlsContainer.classList.add("visible");
@@ -7223,7 +7287,7 @@ class FashionGallery {
     this.beginGalleryEntrance();
   }
   beginGalleryEntrance() {
-    homeLoadingDismissScheduled = true;
+    homeLoadingFlags.dismissScheduled = true;
     dismissHomeLoading(() => {
       gsap.set(this.viewport, { opacity: 1 });
       this.applyGridVisibleAndStartDrift({ entranceControls: true });
@@ -7674,182 +7738,4 @@ class FashionGallery {
     }
 
   }
-}
-
-/**
- * Se in portfolio/portfolio-config.js è impostato __PORTFOLIO_CONFIG__.driveManifestUrl (URL App web
- * Google Apps Script), carica progetti + ID file Drive prima di avviare la galleria.
- */
-async function loadPortfolioDriveManifest() {
-  const cfg =
-    (typeof window !== "undefined" && window.__PORTFOLIO_CONFIG__) || {};
-  const url =
-    (typeof cfg.driveManifestUrl === "string" && cfg.driveManifestUrl.trim()) ||
-    (typeof window.__PORTFOLIO_DRIVE_MANIFEST_URL__ === "string" &&
-      window.__PORTFOLIO_DRIVE_MANIFEST_URL__.trim()) ||
-    "";
-  if (!url) return;
-  let res;
-  const manifestTimeoutMs = 20000;
-  try {
-    if (typeof AbortController !== "undefined") {
-      const ctrl = new AbortController();
-      const t = window.setTimeout(() => {
-        if (typeof DOMException !== "undefined") {
-          ctrl.abort(
-            new DOMException(
-              "Timeout manifest Drive (" + manifestTimeoutMs + "ms)",
-              "TimeoutError"
-            )
-          );
-        } else {
-          ctrl.abort();
-        }
-      }, manifestTimeoutMs);
-      try {
-        res = await fetch(url, {
-          method: "GET",
-          redirect: "follow",
-          signal: ctrl.signal
-        });
-      } finally {
-        window.clearTimeout(t);
-      }
-    } else {
-      res = await fetch(url, { method: "GET", redirect: "follow" });
-    }
-  } catch (err) {
-    if (err && err.name === "AbortError") {
-      console.warn(
-        "Portfolio: manifest Drive non disponibile (timeout o rete). Restano i dati già caricati da portfolio/projects."
-      );
-      return;
-    }
-    throw err;
-  }
-  if (!res.ok) {
-    throw new Error(`Manifest Drive: HTTP ${res.status}`);
-  }
-  const data = await res.json();
-  if (!data.projects || !Array.isArray(data.projects)) {
-    throw new Error("Manifest Drive: manca projects[]");
-  }
-  /* Merge: il JSON Drive sovrascrive i data.js locali. Usa __PORTFOLIO_LAYOUT_PATCH_BY_ID__
-   * (portfolio-config.js) per ripristinare layout/testi non presenti sul manifest (es. l-isola → layout "isola"). */
-  const patchMap =
-    (typeof window !== "undefined" && window.__PORTFOLIO_LAYOUT_PATCH_BY_ID__) ||
-    {};
-  window.__PORTFOLIO_PROJECTS__ = data.projects.map((p) =>
-    Object.assign({}, p, patchMap[p.id] || {})
-  );
-  reorderPortfolioProjectsToCanonicalOrder();
-  if (data.config && typeof data.config === "object") {
-    window.__PORTFOLIO_CONFIG__ = Object.assign(
-      {},
-      window.__PORTFOLIO_CONFIG__ || {},
-      data.config
-    );
-  }
-}
-
-/** Durata minima loader (maschera caricamenti velocissimi) */
-const HOME_LOADING_MIN_MS = 600;
-/** Dopo questo tempo il loader viene chiuso in ogni caso (rete bloccata, errori, ecc.) */
-const HOME_LOADING_MAX_MS = 14000;
-let homeLoadingStart = 0;
-let homeLoadingDismissScheduled = false;
-
-function dismissHomeLoading(onDone, options) {
-  const force = options && options.force;
-  const el = document.getElementById("homeLoadingOverlay");
-  const done = typeof onDone === "function" ? onDone : function () {};
-  if (!el) {
-    done();
-    return;
-  }
-  const elapsed = performance.now() - homeLoadingStart;
-  const wait = force
-    ? 0
-    : Math.max(0, HOME_LOADING_MIN_MS - elapsed);
-  window.setTimeout(() => {
-    el.classList.add("home-loading--exiting");
-    el.setAttribute("aria-busy", "false");
-    el.setAttribute("aria-hidden", "true");
-    let finished = false;
-    const finish = () => {
-      if (finished) return;
-      finished = true;
-      el.removeEventListener("transitionend", onTransitionEnd);
-      el.remove();
-      done();
-    };
-    const onTransitionEnd = (e) => {
-      if (e.target !== el) return;
-      if (e.propertyName !== "opacity") return;
-      finish();
-    };
-    el.addEventListener("transitionend", onTransitionEnd);
-    window.setTimeout(finish, 800);
-  }, wait);
-}
-
-function scheduleHomeLoadingMaxTimeout() {
-  window.setTimeout(() => {
-    const el = document.getElementById("homeLoadingOverlay");
-    if (!el || homeLoadingDismissScheduled) return;
-    homeLoadingDismissScheduled = true;
-    dismissHomeLoading(
-      () => {
-        if (gallery && gallery.viewport) {
-          gsap.set(gallery.viewport, { opacity: 1 });
-        }
-        try {
-          if (gallery && typeof gallery.applyGridVisibleAndStartDrift === "function") {
-            gallery.applyGridVisibleAndStartDrift({ entranceControls: true });
-          }
-          if (gallery && typeof gallery.initDraggable === "function") {
-            gallery.initDraggable();
-          }
-          if (gallery && typeof gallery.setupViewportObserver === "function") {
-            gallery.setupViewportObserver();
-          }
-        } catch (e) {
-          console.error(e);
-        }
-        gsap.to(".header", { duration: 0.6, opacity: 1, ease: "power2.out" });
-        gsap.to(".footer", { duration: 0.6, opacity: 1, ease: "power2.out" });
-      },
-      { force: true }
-    );
-  }, HOME_LOADING_MAX_MS);
-}
-
-let gallery;
-
-async function fashionGalleryBoot() {
-  homeLoadingStart = performance.now();
-  scheduleHomeLoadingMaxTimeout();
-  try {
-    await loadPortfolioDriveManifest();
-  } catch (err) {
-    console.error(err);
-  }
-  try {
-    gallery = new FashionGallery();
-    gallery.init();
-  } catch (err) {
-    console.error(err);
-    homeLoadingDismissScheduled = true;
-    dismissHomeLoading(() => {
-      if (gallery && gallery.viewport) {
-        gsap.set(gallery.viewport, { opacity: 1 });
-      }
-    });
-  }
-}
-
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", fashionGalleryBoot);
-} else {
-  fashionGalleryBoot();
 }

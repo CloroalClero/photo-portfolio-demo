@@ -4,11 +4,9 @@ Galleria drag & zoom basata su [questo Pen GSAP](https://codepen.io/filipz/pen/d
 
 ## Struttura del repo
 
-Il **sito pubblicabile** sta nella **root** del progetto: `index.html`, i fogli **`style-shared.css`**, **`style-desktop.css`**, **`style-mobile.css`**, **`viewport-loader.js`**, **`script-desktop.js`**, **`script-mobile.js`**, **`script-shared.js`**, la cartella **`portfolio/`** (`portfolio-config.js`, `projects/<categoria>/<id>/data.js`, `projects-registry.js`) e la cartella **`media/`**. Opzionale: **`style.css`** importa i tre fogli. Il file `portfolio-data.js` è deprecato (solo avviso in console se caricato).
+Il **sito pubblicabile** sta nella **root** del progetto: `index.html`, i fogli **`style-shared.css`**, **`style-desktop.css`**, **`style-mobile.css`**, **`viewport-loader.js`**, la cartella **`js/`** (`script-desktop.js`, `script-mobile.js`, **`app.js`** come entry **ES module**, **`modules/`** con `fashion-gallery.js`, `drive-manifest.js`, `pf-helpers.js`), **`css/projects/`** (uno stylesheet per serie), la cartella **`portfolio/`** (`portfolio-config.js`, `projects/<categoria>/<id>/data.js`, `projects-registry.js`) e la cartella **`media/`**.
 
-La cartella `src/` replica gli stessi file per lavorare in editor: dopo le modifiche, **allinea la root** (copia) per il deploy.
-
-**Breakpoint** (CSS + JS): **900px** — desktop ≥901px, mobile ≤900px. Il JS carica solo lo stub mobile o desktop, poi il bundle `script-shared.js`. Dopo un resize oltre la soglia serve un **refresh** per allineare stub e fogli `media`.
+**Breakpoint** (CSS + JS): **900px** — desktop ≥901px, mobile ≤900px. Il JS carica lo stub mobile o desktop, poi **`js/app.js`** (modulo). Dopo un resize oltre la soglia serve un **refresh** per allineare stub e fogli `media`.
 
 ## Contenuti e progetti
 
@@ -21,7 +19,7 @@ Le immagini vivono in `media/projects/` (una cartella per progetto). Metadati e 
 
 Le foto **devono** stare in sottocartelle (`media/projects/NomeProgetto/…`): non è quello che rompe il deploy. Quello che conta è **cosa carichi sul server**:
 
-1. **Struttura consigliata**: pubblica **index.html**, CSS/JS come sopra, l’intera cartella **`portfolio/`** e **`media/`** (oppure solo `style.css` al posto dei tre CSS se usi il bundle `@import`).
+1. **Struttura consigliata**: pubblica **index.html**, i tre CSS globali, **`viewport-loader.js`**, l’intera cartella **`js/`**, **`css/projects/`**, **`portfolio/`** e **`media/`**.
 2. **GitHub Pages (repo `username.github.io/nome-repo`)**: se la root del sito è `https://…github.io/nome-repo/`, i percorsi relativi `media/projects/…` funzionano **purché** `media` sia nella stessa pubblicazione (non solo `index.html`).
 3. **Sito in una sottocartella diversa da dove sono le immagini**: in `portfolio/portfolio-config.js` imposta `basePath` in `__PORTFOLIO_CONFIG__`, oppure definisci `window.__PORTFOLIO_BASE_PATH__` prima di caricare `viewport-loader.js`.
 4. **File aperti con `file://`**: manifest Drive e alcuni asset possono fallire; usa sempre un piccolo server HTTP in locale per provare.

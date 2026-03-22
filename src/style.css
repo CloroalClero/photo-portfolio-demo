@@ -1,7 +1,0 @@
-/**
- * Retro-compatibilità: stesso effetto dei tre <link> in index.html.
- * Per caricamento mirato usa style-shared + desktop/mobile con attributo media.
- */
-@import url("./style-shared.css");
-@import url("./style-desktop.css");
-@import url("./style-mobile.css");

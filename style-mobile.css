@@ -100,10 +100,34 @@
 
 @media (max-width: 900px) {
   .viewport-site-title {
-    width: min(94vw, 18ch);
-    font-size: clamp(2.35rem, 12.5vw, 5.5rem);
-    letter-spacing: 0.025em;
-    line-height: 1.02;
+    /* Centratura sicura: niente taglio ai lati (safe area) e cap al font più contenuto */
+    left: 50%;
+    right: auto;
+    width: min(
+      calc(
+        100vw - 1.25rem - env(safe-area-inset-left, 0px) -
+          env(safe-area-inset-right, 0px)
+      ),
+      100%
+    );
+    max-width: calc(
+      100vw - 1.25rem - env(safe-area-inset-left, 0px) -
+        env(safe-area-inset-right, 0px)
+    );
+    padding-left: max(0.65rem, env(safe-area-inset-left, 0px));
+    padding-right: max(0.65rem, env(safe-area-inset-right, 0px));
+    box-sizing: border-box;
+    font-size: clamp(1.75rem, 9.2vw, 4.65rem);
+    letter-spacing: 0.02em;
+    line-height: 1.06;
+    transform: translate(-50%, -50%);
+  }
+}
+
+@media (max-width: 900px) and (max-height: 720px) {
+  .viewport-site-title {
+    font-size: clamp(1.55rem, 7.5vw, 3.85rem);
+    line-height: 1.08;
   }
 }
 
@@ -455,6 +479,13 @@
     min-height: min(82vh, 820px);
     max-height: min(92vh, 960px);
     background: #0c0c0c;
+  }
+}
+
+/* Griglia home: isolamento layout/paint per scroll e molte miniature (fascia media/mobile) */
+@media (max-width: 900px) {
+  #viewport .grid-item:not(.grid-item--project-blurb) {
+    contain: layout style;
   }
 }
 
