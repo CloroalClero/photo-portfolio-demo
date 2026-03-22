@@ -10,15 +10,15 @@
   "layout": "concept",
   "summary": "Ritratti di coppia in ambiente naturale.",
   "images": [
-    "07_Anca-Edward.jpg",
-    "18_Anca-Edward.jpg",
-    "33_Anca-Edward.jpg",
-    "37_Anca-Edward.jpg",
-    "41_Anca-Edward.jpg",
-    "49_Anca-Edward.jpg",
-    "52_Anca-Edward.jpg",
-    "62_Anca-Edward.jpg",
-    "67_Anca-Edward.jpg"
+    "07_Anca-Edward.webp",
+    "18_Anca-Edward.webp",
+    "33_Anca-Edward.webp",
+    "37_Anca-Edward.webp",
+    "41_Anca-Edward.webp",
+    "49_Anca-Edward.webp",
+    "52_Anca-Edward.webp",
+    "62_Anca-Edward.webp",
+    "67_Anca-Edward.webp"
   ]
 });
 })(window);

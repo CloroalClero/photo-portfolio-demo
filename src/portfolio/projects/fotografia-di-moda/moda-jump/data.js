@@ -5,19 +5,21 @@
   R.push({
   "id": "moda-jump",
   "folder": "Moda_jump",
-  "title": "JUMP",
-  "summary": "Studio e movimento.",
+  "title": "Moda Jump",
+  "layout": "modaJump",
+  "summary": "Studio, salto, gesto — sequenza essenziale.",
+  "heroImage": "05_jump.webp",
   "images": [
-    "01_jump.jpg",
-    "02_jump.jpg",
-    "03_jump.jpg",
-    "04_jump.jpg",
-    "05_jump.jpg",
-    "06_jump.jpg",
-    "07_jump.jpg",
-    "08_jump.jpg",
-    "09_jump.jpg",
-    "10_jump.jpg"
+    "01_jump.webp",
+    "02_jump.webp",
+    "03_jump.webp",
+    "04_jump.webp",
+    "05_jump.webp",
+    "06_jump.webp",
+    "07_jump.webp",
+    "08_jump.webp",
+    "09_jump.webp",
+    "10_jump.webp"
   ]
 });
 })(window);

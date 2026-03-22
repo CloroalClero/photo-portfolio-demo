@@ -7,36 +7,7 @@
   "folder": "Florentina",
   "title": "FLORENTINA",
   "layout": "editorial",
-  "summary":
-    "Florentina è la ricostruzione della storia di mia\n" +
-    "madre, nata a Râmnicu Sărat nel 1968.\n" +
-    "\n" +
-    "Grazie alle immagini dell'archivio di famiglia\n" +
-    "ritrovate in Romania durante il mio ultimo viaggio,\n" +
-    "riscopro il suo passato e ricompongo la sua vita,\n" +
-    "segnata da una persona e un evento in particolare.\n" +
-    "\n" +
-    "A soli diciotto anni, con la vita ancora davanti,\n" +
-    "Florentina si ritrova al fianco di un uomo violento.\n" +
-    "I due, coetanei, diventano genitori dopo pochi\n" +
-    "mesi di relazione e si sposano subito. Seguono\n" +
-    "sette anni di aggressioni e abusi, finché lei non\n" +
-    "trova la forza di separarsi. Resta legata alla Romania\n" +
-    "ancora per qualche anno, fino a quando intravede\n" +
-    "la possibilità di trasferirsi in Italia per quel lavoro al\n" +
-    "quale è sempre rimasta fedele e che non ha mai\n" +
-    "accantonato.\n" +
-    "\n" +
-    "Si trasferisce così in Italia, lasciando il figlio ancora\n" +
-    "in Romania con la nonna e portandolo con sé solo\n" +
-    "poco tempo dopo.\n" +
-    "\n" +
-    "Attraverso questo progetto non solo scopro mia\n" +
-    "madre sotto nuovi punti di vista — come donna,\n" +
-    "come lavoratrice, come moglie — ma ne comprendo\n" +
-    "le fragilità e maturo un profondo senso di giustizia\n" +
-    "nei confronti dell'uomo che ha segnato non solo la\n" +
-    "sua gioventù, ma la sua vita.",
+  "summary": "Florentina è la ricostruzione della storia di mia madre, nata a Râmnicu Sărat nel 1968.\n\nGrazie alle immagini dell’archivio di famiglia ritrovate in Romania durante il mio ultimo viaggio, riscopro il suo passato e ricompongo la sua vita, segnata da una persona e un evento in particolare.\n\nA soli diciotto anni, con la vita ancora davanti, Florentina si ritrova al fianco di un uomo violento. I due, coetanei, diventano genitori dopo pochi mesi di relazione e si sposano subito. Seguono sette anni di aggressioni e abusi, finché lei non trova la forza di separarsi. Resta legata alla Romania ancora per qualche anno, fino a quando intravede la possibilità di trasferirsi in Italia per quel lavoro al quale è sempre rimasta fedele e che non ha mai accantonato.\n\nSi trasferisce così in Italia, lasciando il figlio ancora in Romania con la nonna e portandolo con sé solo poco tempo dopo.\n\nAttraverso questo progetto non solo scopro mia madre sotto nuovi punti di vista — come donna, come lavoratrice, come moglie — ma ne comprendo le fragilità e maturo un profondo senso di giustizia nei confronti dell’uomo che ha segnato non solo la sua gioventù, ma la sua vita.",
   "images": [
     "01_mamma.webp",
     "02_mamma.webp",

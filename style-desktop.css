@@ -15,14 +15,10 @@
   }
 }
 
-/* N.1 Florentina — vista editoriale: titolo ~72px Sake Moru */
+/* N.1 Florentina — vista editoriale: scala titolo display */
 @media (min-width: 901px) {
   body.project-editorial-active[data-active-project="florentina"]
     .project-editorial__title {
-    font-family: "Sake Moru", "PPNeueMontreal", serif;
-    font-weight: 400;
-    letter-spacing: 0.03em;
-    text-transform: none;
     font-size: clamp(2.65rem, 5.85vw, 3.85rem);
     line-height: 1.05;
     margin-bottom: clamp(1.25rem, 2.2vw, 2rem);

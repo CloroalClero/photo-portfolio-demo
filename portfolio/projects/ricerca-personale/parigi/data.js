@@ -5,18 +5,21 @@
   R.push({
   "id": "parigi",
   "folder": "parigi",
-  "title": "PARIS",
-  "summary": "Strada, dettagli, città.",
+  "title": "Parigi",
+  "layout": "parigi",
+  "summary": "Strada, luce, architettura — frammenti urbani.",
+  "heroImage": "09_parigi.webp",
+  "parigiPullLine": "La città si legge tra luci che scorrono e geometrie che restano.",
   "images": [
-    "01_parigi.jpg",
-    "03_parigi.jpg",
-    "04_parigi.jpg",
-    "05_parigi.jpg",
-    "07_parigi.jpg",
-    "09_parigi.jpg",
-    "17_parigi.jpg",
-    "22_parigi.jpg",
-    "25_parigi.jpg"
+    "01_parigi.webp",
+    "03_parigi.webp",
+    "04_parigi.webp",
+    "05_parigi.webp",
+    "07_parigi.webp",
+    "09_parigi.webp",
+    "17_parigi.webp",
+    "22_parigi.webp",
+    "25_parigi.webp"
   ]
 });
 })(window);

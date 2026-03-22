@@ -37,7 +37,7 @@ Sì, è possibile: il sito costruisce gli URL con l’**ID file** di Drive (non 
 3. Dal link `https://drive.google.com/file/d/QUESTO_È_L_ID/view` copia solo l’ID (la lunga stringa tra `/d/` e `/view`).
 4. In `portfolio/portfolio-config.js` imposta:
    - `imagesFrom: "drive"` dentro `__PORTFOLIO_CONFIG__`.
-   - Sostituisci ogni array `images` con gli **ID** nello stesso ordine dei file locali, oppure oggetti `{ driveId: "...", file: "nome.jpg" }` per un `alt` leggibile.
+   - Sostituisci ogni array `images` con gli **ID** nello stesso ordine dei file locali, oppure oggetti `{ driveId: "...", file: "nome.webp" }` per un `alt` leggibile.
 
 La griglia usa le **miniature** (`thumbnail?id=…&sz=w1200`) per alleggerire il carico; lo **zoom** usa `uc?export=view&id=…` (qualità piena). Puoi disattivare le miniature con `useThumbnailsInGrid: false`.
 

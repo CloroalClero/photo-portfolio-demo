@@ -5,16 +5,23 @@
   R.push({
   "id": "gallipoli-day",
   "folder": "Gallipoli-day",
-  "title": "byDAY",
-  "summary": "Gallipoli alla luce del giorno.",
+  "title": "Gallipoli – Giorno",
+  "layout": "gallipoliDay",
+  "summary": "Luce del giorno sul mare: calore, attesa, tempo lento — prima della festa.",
+  "heroImage": "27_gallipoli-personal.webp",
+  "gallipoliDayProjectLabel": "PROJECT 09",
+  "gallipoliDayHeroTitle": "Gallipoli",
+  "gallipoliDaySubtitle": "Giorno",
+  "gallipoliDayHeroTagline": "Sole sulla pelle, ore larghe — il momento prima che tutto accenda.",
+  "gallipoliDayInterlude": "Caldo, luce, respiro — l’attesa che precede la notte.",
   "images": [
-    "09_gallipoli-personal.jpg",
-    "10_gallipoli-personal.jpg",
-    "23_gallipoli-personal.jpg",
-    "24_gallipoli-personal.jpg",
-    "27_gallipoli-personal.jpg",
-    "28_gallipoli-personal.jpg",
-    "33_gallipoli-personal.jpg"
+    "09_gallipoli-personal.webp",
+    "10_gallipoli-personal.webp",
+    "23_gallipoli-personal.webp",
+    "24_gallipoli-personal.webp",
+    "27_gallipoli-personal.webp",
+    "28_gallipoli-personal.webp",
+    "33_gallipoli-personal.webp"
   ]
 });
 })(window);

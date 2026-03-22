@@ -8,6 +8,16 @@
     <link rel="stylesheet" href="https://public.codepenassets.com/css/normalize-5.0.0.min.css">
     <link rel="stylesheet" href="https://fonts.cdnfonts.com/css/sake-moru">
     <link rel="stylesheet" href="./style-shared.css">
+    <link rel="stylesheet" href="./project-nude-editorial.css">
+    <link rel="stylesheet" href="./project-lisola.css?v=isola-mobile-2">
+    <link rel="stylesheet" href="./project-parigi.css?v=parigi-v1">
+    <link rel="stylesheet" href="./project-taboo.css?v=taboo-v1">
+    <link rel="stylesheet" href="./project-moda.css?v=moda-v1">
+    <link rel="stylesheet" href="./project-moda-jump.css?v=moda-jump-v1">
+    <link rel="stylesheet" href="./project-gallipoli.css?v=gallipoli-v1">
+    <link rel="stylesheet" href="./project-gallipoli-day.css?v=gallipoli-day-v1">
+    <link rel="stylesheet" href="./project-ernia.css?v=ernia-v1">
+    <link rel="stylesheet" href="./project-laurea.css?v=laurea-v1">
     <link rel="stylesheet" href="./style-desktop.css" media="(min-width: 901px)">
     <link rel="stylesheet" href="./style-mobile.css" media="(max-width: 900px)">
 
@@ -33,7 +43,15 @@
     </div>
   </div>
   <div class="home-loading__chrome-bottom">
-    <p class="home-loading__meta">Portfolio · 2025</p>
+    <p class="home-loading__meta">
+      Portfolio - Made By
+      <a
+        class="footer__credit-link"
+        href="https://portfolio-three-ruby-wf4uz6dmu1.vercel.app/"
+        target="_blank"
+        rel="noopener noreferrer"
+        >Michel Branche</a>
+    </p>
   </div>
 </div>
 
@@ -99,6 +117,7 @@
 
 <!-- Main Viewport -->
 <div class="viewport" id="viewport">
+  <p class="viewport-site-title">Rubina Stradella</p>
   <div class="canvas-wrapper" id="canvasWrapper">
     <div class="canvas-scale-inner" id="canvasScaleInner">
     <div class="grid-container" id="gridContainer">
@@ -182,13 +201,18 @@
 </section>
 
 <section id="projectHorizontalView" class="project-h" hidden aria-hidden="true">
-  <header class="project-h__head">
-    <p class="project-h__kicker" id="projectHorizontalKicker"></p>
-    <h2 class="project-h__title" id="projectHorizontalTitle"></h2>
-    <p class="project-h__summary" id="projectHorizontalSummary"></p>
-  </header>
-  <div class="project-h__scroll" id="projectHorizontalScroll">
-    <div class="project-h__track" id="projectHorizontalTrack"></div>
+  <div class="project-h__shell">
+    <div class="project-h__copy">
+      <p class="project-h__eyebrow" id="projectHorizontalEyebrow" aria-hidden="true">Serie</p>
+      <p class="project-h__kicker" id="projectHorizontalKicker"></p>
+      <h2 class="project-h__title" id="projectHorizontalTitle"></h2>
+      <div class="project-h__article" id="projectHorizontalArticle"></div>
+    </div>
+    <aside class="project-h__visual" aria-label="Galleria progetto">
+      <div class="project-h__scroll" id="projectHorizontalScroll">
+        <div class="project-h__track" id="projectHorizontalTrack"></div>
+      </div>
+    </aside>
   </div>
 </section>
 
@@ -206,6 +230,372 @@
   </div>
 </section>
 
+<section id="projectIsolaView" class="project-isola" hidden aria-hidden="true" data-animate="1">
+  <header class="project-isola__hero">
+    <div class="project-isola__hero-inner">
+      <div class="project-isola__hero-text">
+        <p class="project-isola__eyebrow" id="projectIsolaEyebrow"></p>
+        <h2 class="project-isola__title" id="projectIsolaTitle"></h2>
+        <p class="project-isola__subtitle" id="projectIsolaSubtitle" hidden></p>
+        <p class="project-isola__hero-lede" id="projectIsolaHeroIntro"></p>
+        <p class="project-isola__tagline" id="projectIsolaTagline" hidden></p>
+      </div>
+      <div class="project-isola__hero-visual">
+        <button
+          type="button"
+          class="project-isola__hero-figure"
+          id="projectIsolaHeroBtn"
+          aria-label="Apri immagine a schermo intero"
+        >
+          <img
+            id="projectIsolaHeroImg"
+            class="project-isola__hero-img"
+            alt=""
+            width="1200"
+            height="1200"
+            decoding="async"
+          />
+        </button>
+      </div>
+    </div>
+  </header>
+  <div class="project-isola__main">
+    <section class="project-isola__editorial" id="projectIsolaEditorialWrap" aria-label="Testo del progetto">
+      <p class="project-isola__ed-kicker" id="projectIsolaEdKicker" hidden></p>
+      <div class="project-isola__editorial-inner" id="projectIsolaEditorial"></div>
+    </section>
+    <figure class="project-isola__pull" id="projectIsolaPullWrap" hidden>
+      <blockquote class="project-isola__pull-quote" id="projectIsolaPullQuote"></blockquote>
+    </figure>
+    <div class="project-isola__gallery project-isola__gallery--mosaic" id="projectIsolaGallery" role="region" aria-label="Galleria fotografica"></div>
+  </div>
+</section>
+
+<section id="projectParigiView" class="project-parigi" hidden aria-hidden="true" data-animate="1">
+  <header class="project-parigi__hero">
+    <div class="project-parigi__hero-inner">
+      <div class="project-parigi__hero-text">
+        <p class="project-parigi__eyebrow" id="projectParigiEyebrow"></p>
+        <h2 class="project-parigi__title" id="projectParigiTitle"></h2>
+      </div>
+      <div class="project-parigi__hero-visual">
+        <button
+          type="button"
+          class="project-parigi__hero-figure"
+          id="projectParigiHeroBtn"
+          aria-label="Apri immagine a schermo intero"
+        >
+          <img
+            id="projectParigiHeroImg"
+            class="project-parigi__hero-img"
+            alt=""
+            width="1200"
+            height="1500"
+            decoding="async"
+          />
+        </button>
+      </div>
+    </div>
+  </header>
+  <div class="project-parigi__main">
+    <div class="project-parigi__interlude-wrap" id="projectParigiInterludeWrap" hidden>
+      <p class="project-parigi__interlude" id="projectParigiInterlude"></p>
+    </div>
+    <div
+      class="project-parigi__gallery project-parigi__gallery--mosaic"
+      id="projectParigiGallery"
+      role="region"
+      aria-label="Galleria fotografica"
+    ></div>
+  </div>
+</section>
+
+<section id="projectTabooView" class="project-taboo" hidden aria-hidden="true" data-animate="1">
+  <header class="project-taboo__hero">
+    <div class="project-taboo__hero-inner">
+      <div class="project-taboo__hero-text">
+        <p class="project-taboo__eyebrow" id="projectTabooEyebrow"></p>
+        <h2 class="project-taboo__title" id="projectTabooTitle"></h2>
+        <p class="project-taboo__hero-lede" id="projectTabooHeroIntro"></p>
+      </div>
+      <div class="project-taboo__hero-visual">
+        <button
+          type="button"
+          class="project-taboo__hero-figure"
+          id="projectTabooHeroBtn"
+          aria-label="Apri immagine a schermo intero"
+        >
+          <img
+            id="projectTabooHeroImg"
+            class="project-taboo__hero-img"
+            alt=""
+            width="1200"
+            height="900"
+            decoding="async"
+          />
+        </button>
+      </div>
+    </div>
+  </header>
+  <div class="project-taboo__main">
+    <section class="project-taboo__editorial" id="projectTabooEditorialWrap" aria-label="Testo del progetto">
+      <div class="project-taboo__editorial-inner" id="projectTabooEditorial"></div>
+    </section>
+    <figure class="project-taboo__pull" id="projectTabooPullWrap" hidden>
+      <blockquote class="project-taboo__pull-quote" id="projectTabooPullQuote"></blockquote>
+    </figure>
+    <div
+      class="project-taboo__gallery project-taboo__gallery--mosaic"
+      id="projectTabooGallery"
+      role="region"
+      aria-label="Galleria fotografica"
+    ></div>
+  </div>
+</section>
+
+<section id="projectModaView" class="project-moda" hidden aria-hidden="true" data-animate="1">
+  <header class="project-moda__hero">
+    <div class="project-moda__hero-inner">
+      <div class="project-moda__hero-text">
+        <p class="project-moda__eyebrow" id="projectModaEyebrow"></p>
+        <h2 class="project-moda__title" id="projectModaTitle"></h2>
+        <p class="project-moda__hero-lede" id="projectModaHeroIntro"></p>
+      </div>
+      <div class="project-moda__hero-visual">
+        <button
+          type="button"
+          class="project-moda__hero-figure"
+          id="projectModaHeroBtn"
+          aria-label="Apri immagine a schermo intero"
+        >
+          <img
+            id="projectModaHeroImg"
+            class="project-moda__hero-img"
+            alt=""
+            width="1200"
+            height="1600"
+            decoding="async"
+          />
+        </button>
+      </div>
+    </div>
+  </header>
+  <div class="project-moda__main">
+    <section class="project-moda__editorial" id="projectModaEditorialWrap" aria-label="Testo del progetto">
+      <div class="project-moda__editorial-inner" id="projectModaEditorial"></div>
+    </section>
+    <figure class="project-moda__pull" id="projectModaPullWrap" hidden>
+      <blockquote class="project-moda__pull-quote" id="projectModaPullQuote"></blockquote>
+    </figure>
+    <div
+      class="project-moda__gallery project-moda__gallery--mosaic"
+      id="projectModaGallery"
+      role="region"
+      aria-label="Galleria fotografica"
+    ></div>
+  </div>
+</section>
+
+<section id="projectModaJumpView" class="project-moda-jump" hidden aria-hidden="true" data-animate="1">
+  <header class="project-moda-jump__hero">
+    <div class="project-moda-jump__hero-inner">
+      <div class="project-moda-jump__hero-text">
+        <p class="project-moda-jump__eyebrow" id="projectModaJumpEyebrow"></p>
+        <h2 class="project-moda-jump__title" id="projectModaJumpTitle"></h2>
+      </div>
+      <div class="project-moda-jump__hero-visual">
+        <button
+          type="button"
+          class="project-moda-jump__hero-figure"
+          id="projectModaJumpHeroBtn"
+          aria-label="Apri immagine a schermo intero"
+        >
+          <img
+            id="projectModaJumpHeroImg"
+            class="project-moda-jump__hero-img"
+            alt=""
+            width="1200"
+            height="1500"
+            decoding="async"
+          />
+        </button>
+      </div>
+    </div>
+  </header>
+  <div class="project-moda-jump__main">
+    <div class="project-moda-jump__interlude-wrap" id="projectModaJumpInterludeWrap" hidden>
+      <p class="project-moda-jump__interlude" id="projectModaJumpInterlude"></p>
+    </div>
+    <div
+      class="project-moda-jump__gallery"
+      id="projectModaJumpGallery"
+      role="region"
+      aria-label="Galleria fotografica"
+    ></div>
+  </div>
+</section>
+
+<section id="projectGallipoliDayView" class="project-gallipoli-day" hidden aria-hidden="true" data-animate="1">
+  <header class="project-gallipoli-day__hero">
+    <div class="project-gallipoli-day__hero-inner">
+      <div class="project-gallipoli-day__hero-text">
+        <p class="project-gallipoli-day__eyebrow" id="projectGallipoliDayEyebrow"></p>
+        <h2 class="project-gallipoli-day__title" id="projectGallipoliDayTitle"></h2>
+        <p class="project-gallipoli-day__subtitle" id="projectGallipoliDaySubtitle"></p>
+        <p class="project-gallipoli-day__tagline" id="projectGallipoliDayTagline"></p>
+      </div>
+      <div class="project-gallipoli-day__hero-visual">
+        <button
+          type="button"
+          class="project-gallipoli-day__hero-figure"
+          id="projectGallipoliDayHeroBtn"
+          aria-label="Apri immagine a schermo intero"
+        >
+          <img
+            id="projectGallipoliDayHeroImg"
+            class="project-gallipoli-day__hero-img"
+            alt=""
+            width="1400"
+            height="900"
+            decoding="async"
+          />
+        </button>
+      </div>
+    </div>
+  </header>
+  <div class="project-gallipoli-day__main">
+    <div class="project-gallipoli-day__interlude-wrap" id="projectGallipoliDayInterludeWrap" hidden>
+      <p class="project-gallipoli-day__interlude" id="projectGallipoliDayInterlude"></p>
+    </div>
+    <div
+      class="project-gallipoli-day__gallery"
+      id="projectGallipoliDayGallery"
+      role="region"
+      aria-label="Galleria fotografica"
+    ></div>
+  </div>
+</section>
+
+<section id="projectGallipoliView" class="project-gallipoli" hidden aria-hidden="true" data-animate="1">
+  <header class="project-gallipoli__hero">
+    <div class="project-gallipoli__hero-inner">
+      <div class="project-gallipoli__hero-text">
+        <p class="project-gallipoli__eyebrow" id="projectGallipoliEyebrow"></p>
+        <h2 class="project-gallipoli__title" id="projectGallipoliTitle"></h2>
+        <p class="project-gallipoli__tagline" id="projectGallipoliTagline"></p>
+      </div>
+      <div class="project-gallipoli__hero-visual">
+        <button
+          type="button"
+          class="project-gallipoli__hero-figure"
+          id="projectGallipoliHeroBtn"
+          aria-label="Apri immagine a schermo intero"
+        >
+          <img
+            id="projectGallipoliHeroImg"
+            class="project-gallipoli__hero-img"
+            alt=""
+            width="1400"
+            height="900"
+            decoding="async"
+          />
+        </button>
+      </div>
+    </div>
+  </header>
+  <div class="project-gallipoli__main">
+    <div class="project-gallipoli__interlude-wrap" id="projectGallipoliInterludeWrap" hidden>
+      <p class="project-gallipoli__interlude" id="projectGallipoliInterlude"></p>
+    </div>
+    <div
+      class="project-gallipoli__gallery"
+      id="projectGallipoliGallery"
+      role="region"
+      aria-label="Galleria fotografica"
+    ></div>
+  </div>
+</section>
+
+<section id="projectErniaView" class="project-ernia" hidden aria-hidden="true" data-animate="1">
+  <header class="project-ernia__hero">
+    <div class="project-ernia__hero-inner">
+      <div class="project-ernia__hero-text">
+        <p class="project-ernia__eyebrow" id="projectErniaEyebrow"></p>
+        <h2 class="project-ernia__title" id="projectErniaTitle"></h2>
+        <p class="project-ernia__tagline" id="projectErniaTagline"></p>
+      </div>
+      <div class="project-ernia__hero-visual">
+        <button
+          type="button"
+          class="project-ernia__hero-figure"
+          id="projectErniaHeroBtn"
+          aria-label="Apri immagine a schermo intero"
+        >
+          <img
+            id="projectErniaHeroImg"
+            class="project-ernia__hero-img"
+            alt=""
+            width="1400"
+            height="900"
+            decoding="async"
+          />
+        </button>
+      </div>
+    </div>
+  </header>
+  <div class="project-ernia__main">
+    <div class="project-ernia__interlude-wrap" id="projectErniaInterludeWrap" hidden>
+      <p class="project-ernia__interlude" id="projectErniaInterlude"></p>
+    </div>
+    <div
+      class="project-ernia__gallery"
+      id="projectErniaGallery"
+      role="region"
+      aria-label="Galleria fotografica"
+    ></div>
+  </div>
+</section>
+
+<section id="projectLaureaView" class="project-laurea" hidden aria-hidden="true" data-animate="1">
+  <header class="project-laurea__hero">
+    <div class="project-laurea__hero-inner">
+      <div class="project-laurea__hero-text">
+        <p class="project-laurea__eyebrow" id="projectLaureaEyebrow"></p>
+        <h2 class="project-laurea__title" id="projectLaureaTitle"></h2>
+        <p class="project-laurea__tagline" id="projectLaureaTagline"></p>
+      </div>
+      <div class="project-laurea__hero-visual">
+        <button
+          type="button"
+          class="project-laurea__hero-figure"
+          id="projectLaureaHeroBtn"
+          aria-label="Apri immagine a schermo intero"
+        >
+          <img
+            id="projectLaureaHeroImg"
+            class="project-laurea__hero-img"
+            alt=""
+            width="1200"
+            height="1500"
+            decoding="async"
+          />
+        </button>
+      </div>
+    </div>
+  </header>
+  <div class="project-laurea__prose-wrap" id="projectLaureaProseWrap" hidden>
+    <div class="project-laurea__prose" id="projectLaureaProse" role="article" aria-label="Testo del progetto"></div>
+  </div>
+  <div class="project-laurea__main">
+    <div
+      class="project-laurea__gallery"
+      id="projectLaureaGallery"
+      role="region"
+      aria-label="Galleria fotografica"
+    ></div>
+  </div>
+</section>
+
 <!-- Simple 64px white arrow button -->
 <button class="close-button" id="closeButton">
   <svg width="64" height="64" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -215,7 +605,15 @@
 
 <footer class="footer footer--lite" role="contentinfo">
   <div class="footer__inner">
-    <p class="footer__line">Portfolio · 2025</p>
+    <p class="footer__line">
+      Portfolio - Made By
+      <a
+        class="footer__credit-link"
+        href="https://portfolio-three-ruby-wf4uz6dmu1.vercel.app/"
+        target="_blank"
+        rel="noopener noreferrer"
+        >Michel Branche</a>
+    </p>
   </div>
 </footer>
 
@@ -226,7 +624,7 @@
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/CustomEase.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/Flip.min.js"></script>
-    <script defer src="./portfolio/portfolio-config.js"></script>
+    <script defer src="./portfolio/portfolio-config.js?v=isola-drive-patch-1"></script>
     <script defer src="./portfolio/projects/ricerca-personale/florentina/data.js"></script>
     <script defer src="./portfolio/projects/ricerca-personale/binge-drinking/data.js"></script>
     <script defer src="./portfolio/projects/ricerca-personale/nude/data.js"></script>

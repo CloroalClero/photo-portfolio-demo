@@ -99,6 +99,15 @@
 }
 
 @media (max-width: 900px) {
+  .viewport-site-title {
+    width: min(94vw, 18ch);
+    font-size: clamp(2.35rem, 12.5vw, 5.5rem);
+    letter-spacing: 0.025em;
+    line-height: 1.02;
+  }
+}
+
+@media (max-width: 900px) {
   body.project-zoom-enabled:not(.zoom-mode) #viewport {
     display: flex;
     flex-direction: column;
@@ -161,8 +170,8 @@
 
   .grid-item__project-title {
     font-size: clamp(1.02rem, 4.2vw, 1.28rem);
-    margin-bottom: 0.45rem;
-    line-height: 1.15;
+    margin: 0;
+    line-height: 1.12;
   }
 
   .grid-item__project-summary {
@@ -270,14 +279,10 @@
     max-width: none;
   }
 
-  body.zoom-mode .image-title-overlay .image-slide-description-scroll {
-    max-height: min(42vh, 320px);
-  }
-
-  body.zoom-mode
-    .image-title-overlay.image-title-overlay--relaxed
-    .image-slide-description-scroll {
-    max-height: min(38vh, 280px);
+  /* Zoom mobile: niente blocco descrizione (solo desktop mantiene testo a lato) */
+  body.zoom-mode .image-title-overlay .image-slide-description-scroll,
+  body.zoom-mode .image-title-overlay .image-slide-description {
+    display: none !important;
   }
 
   body.zoom-mode .close-button {
@@ -344,41 +349,6 @@
     height: auto;
     min-height: 40vh;
     overflow: visible;
-  }
-}
-
-@media (max-width: 900px) {
-  .project-h__head {
-    padding-left: max(0.85rem, env(safe-area-inset-left, 0px));
-    padding-right: max(0.85rem, env(safe-area-inset-right, 0px));
-    padding-top: max(0.5rem, env(safe-area-inset-top, 0px));
-  }
-
-  .project-h__title {
-    font-size: clamp(1rem, 4.5vw, 1.35rem);
-    letter-spacing: 0.03em;
-  }
-
-  .project-h__summary {
-    max-width: none;
-    font-size: clamp(0.82rem, 3.2vw, 0.95rem);
-    line-height: 1.5;
-  }
-
-  .project-h__track {
-    --row-h: min(
-      clamp(210px, 44vh, 460px),
-      calc(100dvh - var(--chrome-bar-height) - 6.5rem)
-    );
-    padding-left: max(0.65rem, env(safe-area-inset-left, 0px));
-    padding-right: max(0.65rem, env(safe-area-inset-right, 0px));
-    padding-bottom: max(0.65rem, env(safe-area-inset-bottom, 0px));
-    gap: 10px;
-  }
-
-  .project-h-card--4x4 {
-    width: min(calc(var(--row-h) * 2.25), 90vw);
-    min-width: min(calc(var(--row-h) * 2.1), 86vw);
   }
 }
 
@@ -463,8 +433,6 @@
 
   body.project-editorial-active[data-active-project="florentina"]
     .project-editorial__title {
-    font-family: "Sake Moru", "PPNeueMontreal", serif;
-    font-weight: 400;
     font-size: clamp(2rem, 8vw, 2.95rem);
     line-height: 1.08;
   }

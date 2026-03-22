@@ -1,4 +1,5 @@
 @import url("https://fonts.cdnfonts.com/css/thegoodmonolith");
+@import url("https://fonts.cdnfonts.com/css/sake-moru");
 
 @font-face {
   font-family: "PPNeueMontreal";
@@ -9,6 +10,7 @@
 }
 
 :root {
+  --font-project-title: "Sake Moru", "PPNeueMontreal", serif;
   --spacing-base: 1rem;
   --spacing-md: 1.5rem;
   --spacing-lg: 2rem;
@@ -113,7 +115,7 @@ body.zoom-mode {
 
 #homeLoadingOverlay .home-loading__title {
   margin: 0;
-  font-family: "PPNeueMontreal", sans-serif;
+  font-family: var(--font-project-title);
   font-size: clamp(0.95rem, 2.8vw, 1.05rem);
   font-weight: 600;
   letter-spacing: -0.02em;
@@ -146,6 +148,10 @@ body.zoom-mode {
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.52);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
+}
+
+#homeLoadingOverlay .home-loading__meta .footer__credit-link {
+  color: inherit;
 }
 
 #homeLoadingOverlay .home-loading__wrap {
@@ -617,7 +623,16 @@ body.zoom-mode {
 body.about-open #viewport,
 body.project-concept-active #viewport,
 body.project-horizontal-active #viewport,
-body.project-editorial-active #viewport {
+body.project-editorial-active #viewport,
+body.project-isola-active #viewport,
+body.project-parigi-active #viewport,
+body.project-taboo-active #viewport,
+body.project-moda-active #viewport,
+body.project-moda-jump-active #viewport,
+body.project-gallipoli-active #viewport,
+body.project-gallipoli-day-active #viewport,
+body.project-ernia-active #viewport,
+body.project-laurea-active #viewport {
   visibility: hidden;
   pointer-events: none;
 }
@@ -884,6 +899,19 @@ body.project-editorial-active #viewport {
   transition: color 0.35s ease, opacity 0.35s ease;
 }
 
+.footer__credit-link {
+  pointer-events: auto;
+  cursor: pointer;
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: 1px;
+}
+
+.footer__credit-link:hover {
+  color: rgba(255, 255, 255, 0.95);
+}
+
 .footer--lite:hover .footer__line {
   color: rgba(255, 255, 255, 0.88);
 }
@@ -957,7 +985,7 @@ body.project-editorial-active #viewport {
   padding: 0;
   overflow: hidden;
   white-space: nowrap;
-  font-family: "PPNeueMontreal", sans-serif;
+  font-family: var(--font-project-title);
   font-size: 15px;
   font-weight: 600;
   letter-spacing: -0.02em;
@@ -1080,6 +1108,50 @@ h3 {
   opacity: 0;
 }
 
+/* Nome centrato sullo schermo, molto grande; stesso font dei titoli progetto; non segue il pan del canvas */
+.viewport-site-title {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+  width: min(96vw, 24ch);
+  margin: 0;
+  padding: 0 max(0.75rem, env(safe-area-inset-left, 0px))
+    0 max(0.75rem, env(safe-area-inset-right, 0px));
+  box-sizing: border-box;
+  text-align: center;
+  text-wrap: balance;
+  font-family: var(--font-project-title);
+  font-size: clamp(2.5rem, min(17vw, 22vh), 11rem);
+  font-weight: 400;
+  letter-spacing: 0.03em;
+  line-height: 0.98;
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow:
+    0 0 2.5rem rgba(0, 0, 0, 0.85),
+    0 0.06em 0.35em rgba(0, 0, 0, 0.75);
+  pointer-events: none;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none;
+  transition:
+    opacity 0.28s ease,
+    visibility 0.28s ease;
+}
+
+/* Solo vista “tutte le foto”: con una serie attiva nasconde il nome sopra la griglia */
+body[data-active-project] .viewport-site-title {
+  opacity: 0;
+  visibility: hidden;
+}
+
+body.zoom-mode .viewport-site-title {
+  opacity: 0;
+  visibility: hidden;
+}
+
 /*
  * Vista progetto su mobile: scroll + griglia centrata nello spazio utile (sotto header).
  * display:flex + margin:auto sul canvas centra orizzontale e verticale quando c’è spazio libero;
@@ -1148,8 +1220,13 @@ body.project-zoom-enabled .grid-item--project-blurb {
   width: 100%;
   max-width: 38rem;
   margin: 0;
-  padding: clamp(0.85rem, 2vw, 1.5rem) clamp(0.9rem, 2.2vw, 1.65rem);
+  padding: clamp(1rem, 2.2vw, 1.65rem) clamp(0.95rem, 2.3vw, 1.75rem);
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.45rem, 1.1vw, 0.7rem);
+  justify-content: center;
+  min-height: 0;
 }
 
 /* Testo a destra della copertina */
@@ -1177,6 +1254,7 @@ body.project-zoom-enabled .grid-item--project-blurb {
 
 .grid-item--project-blurb--band .grid-item__project-title {
   text-wrap: balance;
+  margin: 0;
 }
 
 /* Pila 2×2 sotto copertina (2 col): stessa larghezza percepita della foto sopra */
@@ -1186,16 +1264,17 @@ body.project-zoom-enabled .grid-item--project-blurb {
 }
 
 .grid-item__project-title {
-  font-family: "PPNeueMontreal", sans-serif;
-  font-size: clamp(1rem, 1.9vw, 1.42rem);
-  font-weight: 600;
-  letter-spacing: -0.03em;
-  margin: 0 0 0.55rem;
-  line-height: 1.18;
+  font-family: var(--font-project-title);
+  font-size: clamp(1.05rem, 2vw, 1.48rem);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  margin: 0;
+  line-height: 1.12;
+  text-transform: none;
 }
 
 .grid-item--project-blurb--band .grid-item__project-title {
-  margin-bottom: 0.5rem;
+  margin: 0;
 }
 
 .grid-item__project-summary {
@@ -1453,17 +1532,45 @@ body.zoom-mode .scaling-image-overlay {
   touch-action: pan-y;
 }
 
-/* Footer a z-index 10000: sopra la fascia NUDE; nascosto come per about */
-body.project-horizontal-active .footer,
-body.project-concept-active .footer,
-body.project-editorial-active .footer {
-  visibility: hidden !important;
-  pointer-events: none !important;
-}
-
 body.zoom-mode .image-title-overlay {
   z-index: 10050;
   pointer-events: none;
+}
+
+/* Desktop zoom: colonna destra — testo leggibile, flusso verticale senza box di scroll stretto */
+@media (min-width: 901px) {
+  body.zoom-mode .image-title-overlay {
+    left: 50%;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 50%;
+    max-width: 50%;
+    padding: max(1.5rem, env(safe-area-inset-top, 0px))
+      max(1.75rem, env(safe-area-inset-right, 0px))
+      max(1.5rem, env(safe-area-inset-bottom, 0px))
+      clamp(1.25rem, 2.5vw, 2rem);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    gap: 1.1rem;
+    transform: none;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    pointer-events: auto;
+    -webkit-overflow-scrolling: touch;
+    background: linear-gradient(
+      100deg,
+      rgba(0, 0, 0, 0) 0%,
+      rgba(0, 0, 0, 0.38) 18%,
+      rgba(0, 0, 0, 0.5) 100%
+    );
+    -webkit-filter: none;
+            filter: none;
+  }
 }
 
 /* Zoom: descrizione sempre scrollabile col dito (subito); il resto dell’overlay resta “trasparente” ai touch */
@@ -1483,42 +1590,58 @@ body.zoom-mode .image-title-overlay .image-slide-description-scroll {
   -webkit-overflow-scrolling: touch;
 }
 
+@media (min-width: 901px) {
+  body.zoom-mode .image-title-overlay .image-slide-number,
+  body.zoom-mode .image-title-overlay .image-slide-title,
+  body.zoom-mode .image-title-overlay .image-slide-description-scroll,
+  body.zoom-mode .image-title-overlay .image-slide-description {
+    max-width: min(40rem, 100%);
+  }
+
+  /* Descrizione a tutta altezza utile: niente max-height / scroll interno */
+  body.zoom-mode .image-title-overlay .image-slide-description-scroll {
+    max-height: none;
+    overflow: visible;
+    flex: 0 0 auto;
+    touch-action: auto;
+  }
+
+  body.zoom-mode .image-slide-title {
+    height: auto;
+    min-height: 2.75rem;
+    margin-bottom: 0.35rem;
+    clip-path: none;
+    overflow: visible;
+  }
+
+  body.zoom-mode .image-slide-title h1 {
+    position: relative;
+    font-size: clamp(1.9rem, 2.6vw, 2.9rem);
+  }
+
+  body.zoom-mode .image-slide-description {
+    min-height: 0;
+    clip-path: none;
+    overflow: visible;
+  }
+
+  body.zoom-mode .image-title-overlay .description-line {
+    font-size: clamp(1.02rem, 1.2vw, 1.14rem);
+    line-height: 1.58;
+    color: rgba(255, 255, 255, 0.93);
+  }
+
+  body.zoom-mode .image-title-overlay .image-slide-number span {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    color: rgba(255, 255, 255, 0.72);
+  }
+}
+
 body.zoom-mode .image-title-overlay .image-slide-description {
   clip-path: none;
   overflow: visible;
   min-height: 0;
-}
-
-/* Dopo il delay: pannello più leggero e testo più trasparente */
-body.zoom-mode
-  .image-title-overlay.image-title-overlay--relaxed
-  .image-slide-description-scroll {
-  max-height: min(32vh, 220px);
-  padding: 0.35rem 0.5rem 0.5rem;
-  margin: 0 -0.5rem;
-  border-radius: 10px;
-  background: rgba(0, 0, 0, 0.22);
-  box-shadow: 0 -1px 0 rgba(255, 255, 255, 0.06) inset;
-}
-
-body.zoom-mode
-  .image-title-overlay.image-title-overlay--relaxed
-  .description-line {
-  color: rgba(255, 255, 255, 0.68);
-}
-
-body.zoom-mode
-  .image-title-overlay.image-title-overlay--relaxed
-  .image-slide-number
-  span {
-  color: rgba(255, 255, 255, 0.88);
-}
-
-body.zoom-mode
-  .image-title-overlay.image-title-overlay--relaxed
-  .image-slide-title
-  h1 {
-  color: rgba(255, 255, 255, 0.92);
 }
 
 .image-slide-number {
@@ -1553,7 +1676,7 @@ body.zoom-mode
   position: relative;
   width: 100%;
   max-width: 28rem;
-  height: 60px;
+  height: 72px;
   margin-bottom: 1em;
   -webkit-clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
           clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
@@ -1565,11 +1688,11 @@ body.zoom-mode
   top: 0;
   left: 0;
   color: white;
-  font-family: "PPNeueMontreal", sans-serif;
-  font-size: 48px;
-  font-weight: 500;
-  letter-spacing: -0.02em;
-  line-height: 1.2;
+  font-family: var(--font-project-title);
+  font-size: clamp(2rem, 4.5vw, 2.65rem);
+  font-weight: 400;
+  letter-spacing: 0.03em;
+  line-height: 1.08;
   transform: translateY(0px);
   will-change: transform;
   margin: 0;
@@ -1788,12 +1911,12 @@ body.zoom-mode .close-button {
 
 .project-concept__name {
   margin: 0 0 0.4rem;
-  font-family: "PPNeueMontreal", sans-serif;
-  font-size: clamp(1.35rem, 2.4vw, 2.35rem);
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  line-height: 1.05;
-  text-transform: uppercase;
+  font-family: var(--font-project-title);
+  font-size: clamp(1.4rem, 2.5vw, 2.45rem);
+  font-weight: 400;
+  letter-spacing: 0.03em;
+  line-height: 1.08;
+  text-transform: none;
   color: #fff;
 }
 
@@ -1833,7 +1956,7 @@ body.zoom-mode .close-button {
 .project-concept__grid {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: clamp(0.5rem, 1vw, 0.85rem);
+  gap: clamp(0.6rem, 1.15vw, 0.95rem);
   align-content: start;
 }
 
@@ -1846,7 +1969,8 @@ body.zoom-mode .close-button {
   cursor: pointer;
   overflow: hidden;
   background: #e8e8e8;
-  border-radius: 0;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06);
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -1879,163 +2003,7 @@ body.zoom-mode .close-button {
 }
 
 
-
-/* --- NUDE (N.3): riga orizzontale scorrevole, card 1×1 e 4×4 (in unità griglia) --- */
-.project-h {
-  position: fixed;
-  top: var(--chrome-bar-height);
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 8000;
-  display: flex;
-  flex-direction: column;
-  background: #060606;
-  overflow: hidden;
-  box-sizing: border-box;
-}
-
-.project-h[hidden] {
-  display: none !important;
-}
-
-.project-h__head {
-  flex-shrink: 0;
-  padding: 0.55rem 1.1rem 0.65rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-}
-
-.project-h__kicker {
-  margin: 0 0 0.2rem;
-  font-family: "TheGoodMonolith", monospace;
-  font-size: 10px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.45);
-}
-
-.project-h__title {
-  margin: 0 0 0.25rem;
-  font-family: "PPNeueMontreal", sans-serif;
-  font-size: clamp(1.05rem, 2.2vw, 1.45rem);
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  color: rgba(255, 255, 255, 0.95);
-}
-
-.project-h__summary {
-  margin: 0;
-  font-family: "PPNeueMontreal", sans-serif;
-  font-size: clamp(0.78rem, 1.4vw, 0.92rem);
-  font-weight: 300;
-  line-height: 1.45;
-  color: rgba(255, 255, 255, 0.58);
-  max-width: 40rem;
-}
-
-.project-h__scroll {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: row;
-  justify-content: safe center;
-  overflow-x: auto;
-  overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
-  scroll-snap-type: x proximity;
-  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
-  overscroll-behavior-x: contain;
-  overscroll-behavior-y: none;
-  touch-action: pan-x;
-}
-
-.project-h__scroll::-webkit-scrollbar {
-  height: 8px;
-}
-
-.project-h__scroll::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.18);
-  border-radius: 4px;
-}
-
-.project-h__track {
-  flex: 0 0 auto;
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  align-items: center;
-  gap: var(--project-h-gap, 12px);
-  padding: 0.85rem 1.25rem 1rem;
-  width: max-content;
-  max-width: none;
-  --row-h: min(
-    clamp(200px, 36vh, 400px),
-    calc(100vh - var(--chrome-bar-height) - 5.75rem)
-  );
-  height: var(--row-h);
-  max-height: 100%;
-  box-sizing: border-box;
-  --g: var(--project-h-gap, 12px);
-}
-
-.project-h-card {
-  position: relative;
-  flex-shrink: 0;
-  margin: 0;
-  padding: 0;
-  border: none;
-  cursor: pointer;
-  overflow: hidden;
-  background: #141414;
-  border-radius: 2px;
-  scroll-snap-align: start;
-  -webkit-tap-highlight-color: transparent;
-  flex-grow: 0;
-  contain: layout style;
-  box-sizing: border-box;
-}
-
-.project-h-card:focus-visible {
-  outline: 2px solid rgba(255, 255, 255, 0.5);
-  outline-offset: 2px;
-}
-
-/* Piccole: sempre più larghe che alte (≈ 16:9) */
-.project-h-card--1x1 {
-  width: calc(var(--row-h) * 16 / 9);
-  height: var(--row-h);
-  min-width: calc(var(--row-h) * 16 / 9);
-  max-height: var(--row-h);
-}
-
-/* Grandi: panorama sulla stessa riga (≈ 2.35× l’altezza) */
-.project-h-card--4x4 {
-  width: min(calc(var(--row-h) * 2.35), 92vw);
-  height: var(--row-h);
-  min-width: min(calc(var(--row-h) * 2.2), 88vw);
-  max-height: var(--row-h);
-}
-
-.project-h-card img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  max-width: none;
-  max-height: none;
-  object-fit: cover;
-  object-position: center;
-  display: block;
-  pointer-events: none;
-}
-
-body.project-horizontal-active .project-h-card {
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05);
-}
-
-body.project-zoom-enabled .project-h-card {
-  cursor: pointer;
-}
+/* Vista NUDE (horizontal-mixed): vedi project-nude-editorial.css */
 
 /* --- Vista progetto editoriale (titolo + testo + foto ai lati) --- */
 .project-editorial {
@@ -2062,9 +2030,9 @@ body.project-zoom-enabled .project-h-card {
     minmax(10.5rem, 1.05fr)
     min(40rem, 92vw)
     minmax(10.5rem, 1.05fr);
-  gap: clamp(1rem, 2.5vw, 2.25rem);
-  padding: clamp(1.5rem, 3vw, 2.75rem) clamp(0.85rem, 3vw, 2.5rem)
-    clamp(2.5rem, 5vh, 4rem);
+  gap: clamp(1.15rem, 2.8vw, 2.5rem);
+  padding: clamp(1.65rem, 3.2vw, 2.85rem) clamp(0.95rem, 3vw, 2.65rem)
+    clamp(2.65rem, 5.5vh, 4.25rem);
   max-width: 100%;
   box-sizing: border-box;
   align-items: start;
@@ -2073,7 +2041,7 @@ body.project-zoom-enabled .project-h-card {
 .project-editorial__side {
   display: flex;
   flex-direction: column;
-  gap: clamp(0.75rem, 1.5vw, 1.25rem);
+  gap: clamp(0.85rem, 1.65vw, 1.4rem);
   min-width: 0;
 }
 
@@ -2141,14 +2109,15 @@ body.project-zoom-enabled .project-h-card {
 }
 
 .project-editorial__title {
-  font-family: "PPNeueMontreal", sans-serif;
-  font-size: clamp(2rem, 5.5vw, 3.25rem);
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  line-height: 1.1;
+  font-family: var(--font-project-title);
+  font-size: clamp(2.15rem, 5.75vw, 3.35rem);
+  font-weight: 400;
+  letter-spacing: 0.03em;
+  line-height: 1.06;
   color: rgba(255, 255, 255, 0.96);
-  margin: 0 0 clamp(1rem, 2vw, 1.75rem);
+  margin: 0 0 clamp(1.1rem, 2.1vw, 1.85rem);
   text-wrap: balance;
+  text-transform: none;
 }
 
 .project-editorial__article {
@@ -2178,9 +2147,11 @@ body.project-zoom-enabled .project-h-card {
   border: none;
   cursor: pointer;
   overflow: hidden;
-  background: #121212;
-  border-radius: 3px;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06);
+  background: #101010;
+  border-radius: 4px;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.07),
+    0 12px 36px rgba(0, 0, 0, 0.35);
   -webkit-tap-highlight-color: transparent;
   flex-shrink: 0;
 }

@@ -81,11 +81,55 @@ class FashionGallery {
     this.conceptHeroItemData = null;
     this.projectHorizontalEl = document.getElementById("projectHorizontalView");
     this.projectHorizontalTrack = document.getElementById("projectHorizontalTrack");
+    this._horizontalRevealIO = null;
     this.projectEditorialEl = document.getElementById("projectEditorialView");
     this.projectEditorialLeft = document.getElementById("projectEditorialLeft");
     this.projectEditorialRight = document.getElementById("projectEditorialRight");
     this.projectEditorialMobileGallery =
       document.getElementById("projectEditorialMobileGallery");
+    this.projectIsolaEl = document.getElementById("projectIsolaView");
+    this.projectIsolaGallery = document.getElementById("projectIsolaGallery");
+    this.isolaHeroItemData = null;
+    this._isolaRevealIO = null;
+    this.projectParigiEl = document.getElementById("projectParigiView");
+    this.projectParigiGallery = document.getElementById("projectParigiGallery");
+    this.parigiHeroItemData = null;
+    this._parigiRevealIO = null;
+    this.projectTabooEl = document.getElementById("projectTabooView");
+    this.projectTabooGallery = document.getElementById("projectTabooGallery");
+    this.tabooHeroItemData = null;
+    this._tabooRevealIO = null;
+    this.projectModaEl = document.getElementById("projectModaView");
+    this.projectModaGallery = document.getElementById("projectModaGallery");
+    this.modaHeroItemData = null;
+    this._modaRevealIO = null;
+    this.projectModaJumpEl = document.getElementById("projectModaJumpView");
+    this.projectModaJumpGallery =
+      document.getElementById("projectModaJumpGallery");
+    this.modaJumpHeroItemData = null;
+    this._modaJumpRevealIO = null;
+    this.projectGallipoliEl = document.getElementById("projectGallipoliView");
+    this.projectGallipoliGallery =
+      document.getElementById("projectGallipoliGallery");
+    this.gallipoliHeroItemData = null;
+    this._gallipoliRevealIO = null;
+    this.projectGallipoliDayEl = document.getElementById(
+      "projectGallipoliDayView"
+    );
+    this.projectGallipoliDayGallery = document.getElementById(
+      "projectGallipoliDayGallery"
+    );
+    this.gallipoliDayHeroItemData = null;
+    this._gallipoliDayRevealIO = null;
+    this.projectErniaEl = document.getElementById("projectErniaView");
+    this.projectErniaGallery = document.getElementById("projectErniaGallery");
+    this.erniaHeroItemData = null;
+    this._erniaRevealIO = null;
+    this.projectLaureaEl = document.getElementById("projectLaureaView");
+    this.projectLaureaGallery =
+      document.getElementById("projectLaureaGallery");
+    this.laureaHeroItemData = null;
+    this._laureaRevealIO = null;
     // Create custom eases
     this.customEase = CustomEase.create("smooth", ".87,0,.13,1");
     this.centerEase = CustomEase.create("center", ".25,.46,.45,.94");
@@ -123,7 +167,6 @@ class FashionGallery {
     this._zoomNavTouchEndBound = (e) => this.onZoomNavTouchEnd(e);
     this._zoomNavTouchStartX = null;
     this._zoomNavTouchStartY = null;
-    this._zoomDescRelaxTimer = null;
     /** Vista serie su mobile: colonna unica, celle larghe (feed) */
     this.mobileProjectFeedActive = false;
     // Initialize sound system
@@ -458,7 +501,7 @@ class FashionGallery {
    * Local: raw è il nome file (string), { file, thumb? }, oppure thumb da cartella globale (vedi
    * `localThumbnailSubfolder` in __PORTFOLIO_CONFIG__). La griglia usa `url` (miniatura), lo zoom `fullImageUrl`.
    * Google Drive: imposta window.__PORTFOLIO_CONFIG__.imagesFrom = "drive" e metti in images
-   * l’ID file (string) o { driveId: "ID", file: "etichetta.jpg" } nello stesso ordine dei file locali.
+   * l’ID file (string) o { driveId: "ID", file: "etichetta.webp" } nello stesso ordine dei file locali.
    * Con useLocalMediaForZoom + file (o localZoomImages), lo zoom usa media/projects/&lt;folder&gt;/&lt;file&gt;.
    */
   resolvePortfolioImage(project, raw, indexInProject) {
@@ -533,8 +576,8 @@ class FashionGallery {
     const file =
       typeof raw === "string" ? raw : raw && raw.file ? raw.file : "";
     if (!file) {
-      const u = this.mediaProjectUrl(project.folder, "missing.jpg");
-      return { url: u, fullImageUrl: u, file: "missing.jpg", driveFileId: "" };
+      const u = this.mediaProjectUrl(project.folder, "missing.webp");
+      return { url: u, fullImageUrl: u, file: "missing.webp", driveFileId: "" };
     }
     const fullUrl = this.mediaProjectUrl(project.folder, file);
     const thumbOverride =
@@ -821,6 +864,15 @@ class FashionGallery {
       this.isProjectFilterActive() &&
       !this.isProjectConceptLayoutActive() &&
       !this.isProjectHorizontalMixedActive() &&
+      !this.isProjectIsolaLayoutActive() &&
+      !this.isProjectParigiLayoutActive() &&
+      !this.isProjectTabooLayoutActive() &&
+      !this.isProjectModaLayoutActive() &&
+      !this.isProjectModaJumpLayoutActive() &&
+      !this.isProjectGallipoliFestivalLayoutActive() &&
+      !this.isProjectGallipoliDayLayoutActive() &&
+      !this.isProjectErniaLiveLayoutActive() &&
+      !this.isProjectLaureaAlbumLayoutActive() &&
       pfMobileLayout()
     );
   }
@@ -866,7 +918,16 @@ class FashionGallery {
         }
         if (
           !this.isProjectConceptLayoutActive() &&
-          !this.isProjectHorizontalMixedActive()
+          !this.isProjectHorizontalMixedActive() &&
+          !this.isProjectIsolaLayoutActive() &&
+          !this.isProjectParigiLayoutActive() &&
+          !this.isProjectTabooLayoutActive() &&
+          !this.isProjectModaLayoutActive() &&
+          !this.isProjectModaJumpLayoutActive() &&
+          !this.isProjectGallipoliFestivalLayoutActive() &&
+          !this.isProjectGallipoliDayLayoutActive() &&
+          !this.isProjectErniaLiveLayoutActive() &&
+          !this.isProjectLaureaAlbumLayoutActive()
         ) {
           const { rows } = this.computeGridPlacementsProject(
             sorted,
@@ -1024,6 +1085,12 @@ class FashionGallery {
       ? list.find((x) => String(x.id) === String(projectId))
       : null;
     if (!p) return "";
+    if (Array.isArray(p.summaryParagraphs) && p.summaryParagraphs.length) {
+      return p.summaryParagraphs
+        .map((x) => String(x).trim())
+        .filter(Boolean)
+        .join("\n\n");
+    }
     if (typeof p.summary === "string" && p.summary.trim()) {
       return p.summary.trim();
     }
@@ -1031,6 +1098,91 @@ class FashionGallery {
       return p.blurb.trim();
     }
     return "";
+  }
+  /**
+   * Paragrafi lunghi per vista NUDE (horizontal-mixed): da `summaryParagraphs` o da summary spezzato.
+   */
+  getProjectSummaryParagraphs(projectId) {
+    const list = window.__PORTFOLIO_PROJECTS__;
+    const p = Array.isArray(list)
+      ? list.find((x) => String(x.id) === String(projectId))
+      : null;
+    if (!p) return [];
+    if (Array.isArray(p.summaryParagraphs) && p.summaryParagraphs.length) {
+      return p.summaryParagraphs.map((x) => String(x).trim()).filter(Boolean);
+    }
+    return this.splitSummaryIntoReadableParagraphs(
+      this.getProjectSummaryText(projectId)
+    );
+  }
+  splitSummaryIntoReadableParagraphs(s) {
+    if (!s || !String(s).trim()) return [];
+    const blocks = String(s)
+      .split(/\n\n+/)
+      .map((b) => b.replace(/\n+/g, " ").trim())
+      .filter(Boolean);
+    const out = [];
+    const maxChunk = 380;
+    for (const b of blocks) {
+      if (b.length <= maxChunk) {
+        out.push(b);
+        continue;
+      }
+      const parts = b.split(/\.\s+/);
+      let cur = "";
+      for (let i = 0; i < parts.length; i++) {
+        const piece = i < parts.length - 1 ? `${parts[i]}.` : parts[i];
+        const next = cur ? `${cur} ${piece}`.trim() : piece;
+        if (next.length > maxChunk && cur) {
+          out.push(cur.trim());
+          cur = piece;
+        } else {
+          cur = next;
+        }
+      }
+      if (cur.trim()) out.push(cur.trim());
+    }
+    return out;
+  }
+  teardownProjectHorizontalReveal() {
+    if (this._horizontalRevealIO) {
+      this._horizontalRevealIO.disconnect();
+      this._horizontalRevealIO = null;
+    }
+    const root = this.projectHorizontalEl;
+    if (root) {
+      root.dataset.animate = "0";
+      root
+        .querySelectorAll(".is-inview")
+        .forEach((el) => el.classList.remove("is-inview"));
+    }
+  }
+  setupProjectHorizontalScrollReveal() {
+    const root = this.projectHorizontalEl;
+    if (!root) return;
+    this.teardownProjectHorizontalReveal();
+    const reduce =
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    root.dataset.animate = reduce ? "0" : "1";
+    const nodes = root.querySelectorAll(".project-h__p, .project-h-card");
+    if (reduce) {
+      nodes.forEach((el) => el.classList.add("is-inview"));
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((en) => {
+          if (en.isIntersecting) {
+            en.target.classList.add("is-inview");
+            io.unobserve(en.target);
+          }
+        });
+      },
+      { root: null, rootMargin: "0px 0px -6% 0px", threshold: 0.12 }
+    );
+    nodes.forEach((el) => io.observe(el));
+    this._horizontalRevealIO = io;
   }
   /**
    * Vista progetto: copertina 2×2 + testo; composizione adattiva per colonne (niente colonna testo da 1 cella stretta).
@@ -1496,6 +1648,15 @@ class FashionGallery {
     if (this.isProjectConceptLayoutActive()) return false;
     if (this.isProjectHorizontalMixedActive()) return false;
     if (this.isProjectEditorialLayoutActive()) return false;
+    if (this.isProjectIsolaLayoutActive()) return false;
+    if (this.isProjectParigiLayoutActive()) return false;
+    if (this.isProjectTabooLayoutActive()) return false;
+    if (this.isProjectModaLayoutActive()) return false;
+    if (this.isProjectModaJumpLayoutActive()) return false;
+    if (this.isProjectGallipoliFestivalLayoutActive()) return false;
+    if (this.isProjectGallipoliDayLayoutActive()) return false;
+    if (this.isProjectErniaLiveLayoutActive()) return false;
+    if (this.isProjectLaureaAlbumLayoutActive()) return false;
     if (typeof window === "undefined") return false;
     return pfMobileLayout();
   }
@@ -1512,7 +1673,7 @@ class FashionGallery {
     const p = this.getActiveProjectRecord();
     return !!(p && p.layout === "concept");
   }
-  /** NUDE: fascia orizzontale scorrevole con card 1×1 e 4×4. */
+  /** NUDE (horizontal-mixed): layout editoriale 2 colonne + galleria verticale (project-nude-editorial.css). */
   isProjectHorizontalMixedActive() {
     const p = this.getActiveProjectRecord();
     if (!p) return false;
@@ -1523,6 +1684,51 @@ class FashionGallery {
   isProjectEditorialLayoutActive() {
     const p = this.getActiveProjectRecord();
     return !!(p && p.layout === "editorial");
+  }
+  /** L'isola / Fuerteventura: hero split editoriale + testo + galleria a ritmo (project-lisola.css). */
+  isProjectIsolaLayoutActive() {
+    const p = this.getActiveProjectRecord();
+    return !!(p && p.layout === "isola");
+  }
+  /** Parigi: hero minimale + interludio + galleria editoriale urbana (project-parigi.css). */
+  isProjectParigiLayoutActive() {
+    const p = this.getActiveProjectRecord();
+    return !!(p && p.layout === "parigi");
+  }
+  /** Taboo Shooting: reportage documentario + testo + galleria (project-taboo.css). */
+  isProjectTabooLayoutActive() {
+    const p = this.getActiveProjectRecord();
+    return !!(p && p.layout === "taboo");
+  }
+  /** Moda Shooting: editoriale fashion + testo + galleria (project-moda.css). */
+  isProjectModaLayoutActive() {
+    const p = this.getActiveProjectRecord();
+    return !!(p && p.layout === "moda");
+  }
+  /** Moda Jump: hero essenziale + galleria a colonna (project-moda-jump.css). */
+  isProjectModaJumpLayoutActive() {
+    const p = this.getActiveProjectRecord();
+    return !!(p && p.layout === "modaJump");
+  }
+  /** Gallipoli notte / festival: hero notturno + galleria a ritmo (project-gallipoli.css). */
+  isProjectGallipoliFestivalLayoutActive() {
+    const p = this.getActiveProjectRecord();
+    return !!(p && p.layout === "gallipoliFestival");
+  }
+  /** Gallipoli giorno / pre-festa (project-gallipoli-day.css). */
+  isProjectGallipoliDayLayoutActive() {
+    const p = this.getActiveProjectRecord();
+    return !!(p && p.layout === "gallipoliDay");
+  }
+  /** Concerti – Ernia: live editoriale (project-ernia.css). */
+  isProjectErniaLiveLayoutActive() {
+    const p = this.getActiveProjectRecord();
+    return !!(p && p.layout === "erniaLive");
+  }
+  /** Laurea – Ame: album personale (project-laurea.css). */
+  isProjectLaureaAlbumLayoutActive() {
+    const p = this.getActiveProjectRecord();
+    return !!(p && p.layout === "laureaAlbum");
   }
   /** Su mobile il testo viene spostato sotto la galleria; ripristina il DOM per desktop / teardown. */
   ensureEditorialArticleInMain() {
@@ -1755,6 +1961,7 @@ class FashionGallery {
   }
   teardownProjectHorizontalView() {
     document.body.classList.remove("project-horizontal-active");
+    this.teardownProjectHorizontalReveal();
     const root = this.projectHorizontalEl;
     if (root) {
       root.hidden = true;
@@ -1762,6 +1969,2749 @@ class FashionGallery {
       root.setAttribute("aria-hidden", "true");
     }
     if (this.projectHorizontalTrack) this.projectHorizontalTrack.innerHTML = "";
+    const articleEl = document.getElementById("projectHorizontalArticle");
+    if (articleEl) articleEl.innerHTML = "";
+    if (this.viewport) {
+      gsap.set(this.viewport, { visibility: "visible", pointerEvents: "auto" });
+    }
+  }
+  teardownIsolaScrollReveal() {
+    if (this._isolaRevealIO) {
+      this._isolaRevealIO.disconnect();
+      this._isolaRevealIO = null;
+    }
+  }
+  setupIsolaScrollReveal() {
+    this.teardownIsolaScrollReveal();
+    const root = this.projectIsolaEl;
+    if (!root || root.hidden) return;
+    const cards = root.querySelectorAll(".project-isola__card");
+    const nodes = [...cards];
+    nodes.forEach((el, i) => {
+      el.classList.remove("is-inview");
+      el.style.setProperty(
+        "--reveal-delay",
+        `${Math.min(i * 0.045, 0.42)}s`
+      );
+    });
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((en) => {
+          if (en.isIntersecting) {
+            en.target.classList.add("is-inview");
+            io.unobserve(en.target);
+          }
+        });
+      },
+      { root, rootMargin: "0px 0px -6% 0px", threshold: 0.06 }
+    );
+    nodes.forEach((el) => io.observe(el));
+    this._isolaRevealIO = io;
+  }
+  teardownParigiScrollReveal() {
+    if (this._parigiRevealIO) {
+      this._parigiRevealIO.disconnect();
+      this._parigiRevealIO = null;
+    }
+  }
+  setupParigiScrollReveal() {
+    this.teardownParigiScrollReveal();
+    const root = this.projectParigiEl;
+    if (!root || root.hidden) return;
+    const cards = root.querySelectorAll(".project-parigi__card");
+    const nodes = [...cards];
+    nodes.forEach((el, i) => {
+      el.classList.remove("is-inview");
+      el.style.setProperty(
+        "--reveal-delay",
+        `${Math.min(i * 0.05, 0.45)}s`
+      );
+    });
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((en) => {
+          if (en.isIntersecting) {
+            en.target.classList.add("is-inview");
+            io.unobserve(en.target);
+          }
+        });
+      },
+      { root, rootMargin: "0px 0px -6% 0px", threshold: 0.06 }
+    );
+    nodes.forEach((el) => io.observe(el));
+    this._parigiRevealIO = io;
+  }
+  /**
+   * Ritmo galleria Parigi: panoramica → coppia verticale → panoramica → terzina → chiusura verticale.
+   * Solo classi s12 / s6 / s4 + modificatore portrait dove serve.
+   */
+  pickParigiGalleryClassList(index) {
+    const base = [
+      { span: "s12", portrait: false },
+      { span: "s6", portrait: true },
+      { span: "s6", portrait: true },
+      { span: "s12", portrait: false },
+      { span: "s4", portrait: false },
+      { span: "s4", portrait: false },
+      { span: "s4", portrait: false },
+      { span: "s12", portrait: true }
+    ];
+    const spec = base[index % base.length];
+    let cls = `project-parigi__card--${spec.span}`;
+    if (spec.portrait) cls += " project-parigi__card--portrait";
+    return cls;
+  }
+  appendParigiGalleryCard(galleryEl, entry, spanClasses, itemIndex) {
+    if (!galleryEl || !entry) return;
+    const cfg =
+      (typeof window !== "undefined" && window.__PORTFOLIO_CONFIG__) || {};
+    const driveImages = cfg.imagesFrom === "drive";
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = `project-parigi__card ${spanClasses}`;
+    const img = document.createElement("img");
+    img.decoding = "async";
+    if (driveImages) img.referrerPolicy = "no-referrer";
+    const slides = this.buildSlideshowSlides(entry);
+    const slide0 = slides[0];
+    img.src = slide0.url;
+    img.alt = slide0.alt;
+    img.loading = itemIndex < 4 ? "eager" : "lazy";
+    btn.appendChild(img);
+    galleryEl.appendChild(btn);
+    const itemData = {
+      element: btn,
+      img,
+      slideViewport: btn,
+      slideTrack: null,
+      slideshowSlides: slides,
+      currentSlideIndex: 0,
+      slideDelay: null,
+      slideTween: null,
+      slideshowPaused: true,
+      slidePauseMul: 1,
+      slideSpeedMul: 1,
+      slideChaos: 0,
+      slideshowResumeStaggerDone: true,
+      driftTween: null,
+      driftDelay: null,
+      driftSuspended: true,
+      driftFormationIdle: true,
+      driftGridX: 0,
+      driftGridY: 0,
+      row: 0,
+      col: 0,
+      spanCols: 1,
+      spanRows: 1,
+      baseX: 0,
+      baseY: 0,
+      imageUrl: slide0.url,
+      fullImageUrl: slide0.fullImageUrl,
+      index: itemIndex,
+      overlayMeta: this.buildOverlayMeta(
+        slide0.catalogEntry ||
+          (entry.type === "remote"
+            ? {
+                type: "remote",
+                overlayIndex:
+                  slide0.overlayIndex ?? entry.overlayIndex ?? itemIndex
+              }
+            : entry)
+      )
+    };
+    this.gridItems.push(itemData);
+  }
+  buildProjectParigiView() {
+    const root = this.projectParigiEl;
+    const galleryEl = this.projectParigiGallery;
+    const heroImg = document.getElementById("projectParigiHeroImg");
+    const heroBtn = document.getElementById("projectParigiHeroBtn");
+    if (!root || !galleryEl || !heroImg) return;
+
+    this.teardownParigiScrollReveal();
+    this.gridContainer.innerHTML = "";
+    this.gridItems = [];
+    this.parigiHeroItemData = null;
+    if (heroBtn) heroBtn.disabled = true;
+
+    const rawItems = this.getDisplayItemsForGrid();
+    const entries = [...rawItems].sort(
+      (a, b) => (a.indexInProject ?? 0) - (b.indexInProject ?? 0)
+    );
+    const rec = this.getActiveProjectRecord();
+    const pid = entries[0]?.projectId;
+    const ord = pid != null ? this.projectOrdinalInPortfolio(pid) : 1;
+
+    let heroIdx = 0;
+    const heroFile = rec && rec.heroImage;
+    if (heroFile) {
+      const hi = entries.findIndex(
+        (e) => String(e.file || "") === String(heroFile)
+      );
+      if (hi >= 0) heroIdx = hi;
+    }
+
+    const heroEntry = entries[heroIdx] || entries[0];
+    const cfg =
+      (typeof window !== "undefined" && window.__PORTFOLIO_CONFIG__) || {};
+    const driveImages = cfg.imagesFrom === "drive";
+    heroImg.decoding = "async";
+    if (driveImages) heroImg.referrerPolicy = "no-referrer";
+    if (heroEntry) {
+      const slidesH = this.buildSlideshowSlides(heroEntry);
+      const sh0 = slidesH[0];
+      if (sh0) {
+        heroImg.src = sh0.url;
+        heroImg.alt = sh0.alt || "";
+        if (heroBtn) {
+          heroBtn.disabled = false;
+          this.parigiHeroItemData = {
+            element: heroBtn,
+            img: heroImg,
+            slideViewport: heroBtn,
+            slideTrack: null,
+            slideshowSlides: slidesH,
+            currentSlideIndex: 0,
+            slideDelay: null,
+            slideTween: null,
+            slideshowPaused: true,
+            slidePauseMul: 1,
+            slideSpeedMul: 1,
+            slideChaos: 0,
+            slideshowResumeStaggerDone: true,
+            driftTween: null,
+            driftDelay: null,
+            driftSuspended: true,
+            driftFormationIdle: true,
+            driftGridX: 0,
+            driftGridY: 0,
+            row: 0,
+            col: 0,
+            spanCols: 1,
+            spanRows: 1,
+            baseX: 0,
+            baseY: 0,
+            imageUrl: sh0.url,
+            fullImageUrl: sh0.fullImageUrl,
+            index: -1,
+            overlayMeta: this.buildOverlayMeta(
+              sh0.catalogEntry ||
+                (heroEntry.type === "remote"
+                  ? {
+                      type: "remote",
+                      overlayIndex:
+                        sh0.overlayIndex ?? heroEntry.overlayIndex ?? 0
+                    }
+                  : heroEntry)
+            )
+          };
+          this.gridItems.push(this.parigiHeroItemData);
+        }
+      } else {
+        heroImg.removeAttribute("src");
+        heroImg.alt = "";
+      }
+    } else {
+      heroImg.removeAttribute("src");
+      heroImg.alt = "";
+    }
+
+    const eyebrowEl = document.getElementById("projectParigiEyebrow");
+    if (eyebrowEl) {
+      const label =
+        rec && rec.parigiProjectLabel && String(rec.parigiProjectLabel).trim();
+      eyebrowEl.textContent =
+        label || `PROJECT ${String(ord).padStart(2, "0")}`;
+    }
+    const titleEl = document.getElementById("projectParigiTitle");
+    if (titleEl) titleEl.textContent = (rec && rec.title) || "";
+
+    const interWrap = document.getElementById("projectParigiInterludeWrap");
+    const interEl = document.getElementById("projectParigiInterlude");
+    const line =
+      rec && rec.parigiPullLine && String(rec.parigiPullLine).trim();
+    if (interWrap && interEl) {
+      if (line) {
+        interEl.textContent = line;
+        interWrap.hidden = false;
+      } else {
+        interEl.textContent = "";
+        interWrap.hidden = true;
+      }
+    }
+
+    galleryEl.innerHTML = "";
+    const galleryEntries =
+      entries.length <= 1 ? [] : entries.filter((_, i) => i !== heroIdx);
+    galleryEntries.forEach((entry, i) => {
+      const spanCls = this.pickParigiGalleryClassList(i);
+      this.appendParigiGalleryCard(galleryEl, entry, spanCls, i);
+    });
+
+    root.hidden = false;
+    root.removeAttribute("hidden");
+    root.setAttribute("aria-hidden", "false");
+    document.body.classList.add("project-parigi-active");
+    if (this.viewport) {
+      gsap.set(this.viewport, { visibility: "hidden", pointerEvents: "none" });
+    }
+    this.setupParigiScrollReveal();
+  }
+  teardownProjectParigiView() {
+    this.teardownParigiScrollReveal();
+    this.parigiHeroItemData = null;
+    document.body.classList.remove("project-parigi-active");
+    const root = this.projectParigiEl;
+    if (root) {
+      root.hidden = true;
+      root.setAttribute("hidden", "");
+      root.setAttribute("aria-hidden", "true");
+    }
+    if (this.projectParigiGallery) this.projectParigiGallery.innerHTML = "";
+    const heroBtnEl = document.getElementById("projectParigiHeroBtn");
+    if (heroBtnEl) heroBtnEl.disabled = true;
+    const heroImg = document.getElementById("projectParigiHeroImg");
+    if (heroImg) {
+      heroImg.removeAttribute("src");
+      heroImg.alt = "";
+    }
+    const interW = document.getElementById("projectParigiInterludeWrap");
+    const interP = document.getElementById("projectParigiInterlude");
+    if (interP) interP.textContent = "";
+    if (interW) interW.hidden = true;
+    if (this.viewport) {
+      gsap.set(this.viewport, { visibility: "visible", pointerEvents: "auto" });
+    }
+  }
+  teardownModaJumpScrollReveal() {
+    if (this._modaJumpRevealIO) {
+      this._modaJumpRevealIO.disconnect();
+      this._modaJumpRevealIO = null;
+    }
+  }
+  setupModaJumpScrollReveal() {
+    this.teardownModaJumpScrollReveal();
+    const root = this.projectModaJumpEl;
+    if (!root || root.hidden) return;
+    const cards = root.querySelectorAll(".project-moda-jump__card");
+    const nodes = [...cards];
+    nodes.forEach((el, i) => {
+      el.classList.remove("is-inview");
+      el.style.setProperty(
+        "--reveal-delay",
+        `${Math.min(i * 0.055, 0.48)}s`
+      );
+    });
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((en) => {
+          if (en.isIntersecting) {
+            en.target.classList.add("is-inview");
+            io.unobserve(en.target);
+          }
+        });
+      },
+      { root, rootMargin: "0px 0px -6% 0px", threshold: 0.06 }
+    );
+    nodes.forEach((el) => io.observe(el));
+    this._modaJumpRevealIO = io;
+  }
+  appendModaJumpGalleryCard(galleryEl, entry, itemIndex) {
+    if (!galleryEl || !entry) return;
+    const cfg =
+      (typeof window !== "undefined" && window.__PORTFOLIO_CONFIG__) || {};
+    const driveImages = cfg.imagesFrom === "drive";
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "project-moda-jump__card";
+    const img = document.createElement("img");
+    img.decoding = "async";
+    if (driveImages) img.referrerPolicy = "no-referrer";
+    const slides = this.buildSlideshowSlides(entry);
+    const slide0 = slides[0];
+    img.src = slide0.url;
+    img.alt = slide0.alt;
+    img.loading = itemIndex < 4 ? "eager" : "lazy";
+    btn.appendChild(img);
+    galleryEl.appendChild(btn);
+    const itemData = {
+      element: btn,
+      img,
+      slideViewport: btn,
+      slideTrack: null,
+      slideshowSlides: slides,
+      currentSlideIndex: 0,
+      slideDelay: null,
+      slideTween: null,
+      slideshowPaused: true,
+      slidePauseMul: 1,
+      slideSpeedMul: 1,
+      slideChaos: 0,
+      slideshowResumeStaggerDone: true,
+      driftTween: null,
+      driftDelay: null,
+      driftSuspended: true,
+      driftFormationIdle: true,
+      driftGridX: 0,
+      driftGridY: 0,
+      row: 0,
+      col: 0,
+      spanCols: 1,
+      spanRows: 1,
+      baseX: 0,
+      baseY: 0,
+      imageUrl: slide0.url,
+      fullImageUrl: slide0.fullImageUrl,
+      index: itemIndex,
+      overlayMeta: this.buildOverlayMeta(
+        slide0.catalogEntry ||
+          (entry.type === "remote"
+            ? {
+                type: "remote",
+                overlayIndex:
+                  slide0.overlayIndex ?? entry.overlayIndex ?? itemIndex
+              }
+            : entry)
+      )
+    };
+    this.gridItems.push(itemData);
+  }
+  buildProjectModaJumpView() {
+    const root = this.projectModaJumpEl;
+    const galleryEl = this.projectModaJumpGallery;
+    const heroImg = document.getElementById("projectModaJumpHeroImg");
+    const heroBtn = document.getElementById("projectModaJumpHeroBtn");
+    if (!root || !galleryEl || !heroImg) return;
+
+    this.teardownModaJumpScrollReveal();
+    this.gridContainer.innerHTML = "";
+    this.gridItems = [];
+    this.modaJumpHeroItemData = null;
+    if (heroBtn) heroBtn.disabled = true;
+
+    const rawItems = this.getDisplayItemsForGrid();
+    const entries = [...rawItems].sort(
+      (a, b) => (a.indexInProject ?? 0) - (b.indexInProject ?? 0)
+    );
+    const rec = this.getActiveProjectRecord();
+    const pid = entries[0]?.projectId;
+    const ord = pid != null ? this.projectOrdinalInPortfolio(pid) : 1;
+
+    let heroIdx = 0;
+    const heroFile = rec && rec.heroImage;
+    if (heroFile) {
+      const hi = entries.findIndex(
+        (e) => String(e.file || "") === String(heroFile)
+      );
+      if (hi >= 0) heroIdx = hi;
+    }
+
+    const heroEntry = entries[heroIdx] || entries[0];
+    const cfg =
+      (typeof window !== "undefined" && window.__PORTFOLIO_CONFIG__) || {};
+    const driveImages = cfg.imagesFrom === "drive";
+    heroImg.decoding = "async";
+    if (driveImages) heroImg.referrerPolicy = "no-referrer";
+    if (heroEntry) {
+      const slidesH = this.buildSlideshowSlides(heroEntry);
+      const sh0 = slidesH[0];
+      if (sh0) {
+        heroImg.src = sh0.url;
+        heroImg.alt = sh0.alt || "";
+        if (heroBtn) {
+          heroBtn.disabled = false;
+          this.modaJumpHeroItemData = {
+            element: heroBtn,
+            img: heroImg,
+            slideViewport: heroBtn,
+            slideTrack: null,
+            slideshowSlides: slidesH,
+            currentSlideIndex: 0,
+            slideDelay: null,
+            slideTween: null,
+            slideshowPaused: true,
+            slidePauseMul: 1,
+            slideSpeedMul: 1,
+            slideChaos: 0,
+            slideshowResumeStaggerDone: true,
+            driftTween: null,
+            driftDelay: null,
+            driftSuspended: true,
+            driftFormationIdle: true,
+            driftGridX: 0,
+            driftGridY: 0,
+            row: 0,
+            col: 0,
+            spanCols: 1,
+            spanRows: 1,
+            baseX: 0,
+            baseY: 0,
+            imageUrl: sh0.url,
+            fullImageUrl: sh0.fullImageUrl,
+            index: -1,
+            overlayMeta: this.buildOverlayMeta(
+              sh0.catalogEntry ||
+                (heroEntry.type === "remote"
+                  ? {
+                      type: "remote",
+                      overlayIndex:
+                        sh0.overlayIndex ?? heroEntry.overlayIndex ?? 0
+                    }
+                  : heroEntry)
+            )
+          };
+          this.gridItems.push(this.modaJumpHeroItemData);
+        }
+      } else {
+        heroImg.removeAttribute("src");
+        heroImg.alt = "";
+      }
+    } else {
+      heroImg.removeAttribute("src");
+      heroImg.alt = "";
+    }
+
+    const eyebrowEl = document.getElementById("projectModaJumpEyebrow");
+    if (eyebrowEl) {
+      const label =
+        rec &&
+        rec.modaJumpProjectLabel &&
+        String(rec.modaJumpProjectLabel).trim();
+      eyebrowEl.textContent =
+        label || `PROJECT ${String(ord).padStart(2, "0")}`;
+    }
+    const titleEl = document.getElementById("projectModaJumpTitle");
+    if (titleEl) titleEl.textContent = (rec && rec.title) || "";
+
+    const interWrap = document.getElementById("projectModaJumpInterludeWrap");
+    const interEl = document.getElementById("projectModaJumpInterlude");
+    const line =
+      rec && rec.modaJumpMicroLine && String(rec.modaJumpMicroLine).trim();
+    if (interWrap && interEl) {
+      if (line) {
+        interEl.textContent = line;
+        interWrap.hidden = false;
+      } else {
+        interEl.textContent = "";
+        interWrap.hidden = true;
+      }
+    }
+
+    galleryEl.innerHTML = "";
+    const galleryEntries =
+      entries.length <= 1 ? [] : entries.filter((_, i) => i !== heroIdx);
+    galleryEntries.forEach((entry, i) => {
+      this.appendModaJumpGalleryCard(galleryEl, entry, i);
+    });
+
+    root.hidden = false;
+    root.removeAttribute("hidden");
+    root.setAttribute("aria-hidden", "false");
+    document.body.classList.add("project-moda-jump-active");
+    if (this.viewport) {
+      gsap.set(this.viewport, { visibility: "hidden", pointerEvents: "none" });
+    }
+    this.setupModaJumpScrollReveal();
+  }
+  teardownProjectModaJumpView() {
+    this.teardownModaJumpScrollReveal();
+    this.modaJumpHeroItemData = null;
+    document.body.classList.remove("project-moda-jump-active");
+    const root = this.projectModaJumpEl;
+    if (root) {
+      root.hidden = true;
+      root.setAttribute("hidden", "");
+      root.setAttribute("aria-hidden", "true");
+    }
+    if (this.projectModaJumpGallery) this.projectModaJumpGallery.innerHTML = "";
+    const heroBtnEl = document.getElementById("projectModaJumpHeroBtn");
+    if (heroBtnEl) heroBtnEl.disabled = true;
+    const heroImg = document.getElementById("projectModaJumpHeroImg");
+    if (heroImg) {
+      heroImg.removeAttribute("src");
+      heroImg.alt = "";
+    }
+    const interW = document.getElementById("projectModaJumpInterludeWrap");
+    const interP = document.getElementById("projectModaJumpInterlude");
+    if (interP) interP.textContent = "";
+    if (interW) interW.hidden = true;
+    if (this.viewport) {
+      gsap.set(this.viewport, { visibility: "visible", pointerEvents: "auto" });
+    }
+  }
+  teardownGallipoliScrollReveal() {
+    if (this._gallipoliRevealIO) {
+      this._gallipoliRevealIO.disconnect();
+      this._gallipoliRevealIO = null;
+    }
+  }
+  setupGallipoliScrollReveal() {
+    this.teardownGallipoliScrollReveal();
+    const root = this.projectGallipoliEl;
+    if (!root || root.hidden) return;
+    const cards = root.querySelectorAll(".project-gallipoli__card");
+    const nodes = [...cards];
+    nodes.forEach((el, i) => {
+      el.classList.remove("is-inview");
+      el.style.setProperty(
+        "--reveal-delay",
+        `${Math.min(i * 0.038, 0.36)}s`
+      );
+    });
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((en) => {
+          if (en.isIntersecting) {
+            en.target.classList.add("is-inview");
+            io.unobserve(en.target);
+          }
+        });
+      },
+      { root, rootMargin: "0px 0px -5% 0px", threshold: 0.05 }
+    );
+    nodes.forEach((el) => io.observe(el));
+    this._gallipoliRevealIO = io;
+  }
+  /**
+   * Ritmo galleria Gallipoli: full → coppie → vert+wide → trio → chiusure alternate.
+   */
+  pickGallipoliGalleryClassList(index) {
+    const pattern = [
+      "project-gallipoli__card--full",
+      "project-gallipoli__card--half",
+      "project-gallipoli__card--half",
+      "project-gallipoli__card--tall",
+      "project-gallipoli__card--wide",
+      "project-gallipoli__card--full",
+      "project-gallipoli__card--feature",
+      "project-gallipoli__card--vert",
+      "project-gallipoli__card--third",
+      "project-gallipoli__card--third",
+      "project-gallipoli__card--third",
+      "project-gallipoli__card--half",
+      "project-gallipoli__card--half",
+      "project-gallipoli__card--full",
+      "project-gallipoli__card--wide",
+      "project-gallipoli__card--tall"
+    ];
+    return pattern[index % pattern.length];
+  }
+  appendGallipoliGalleryCard(galleryEl, entry, spanClasses, itemIndex) {
+    if (!galleryEl || !entry) return;
+    const cfg =
+      (typeof window !== "undefined" && window.__PORTFOLIO_CONFIG__) || {};
+    const driveImages = cfg.imagesFrom === "drive";
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = `project-gallipoli__card ${spanClasses}`;
+    const img = document.createElement("img");
+    img.decoding = "async";
+    if (driveImages) img.referrerPolicy = "no-referrer";
+    const slides = this.buildSlideshowSlides(entry);
+    const slide0 = slides[0];
+    img.src = slide0.url;
+    img.alt = slide0.alt;
+    img.loading = itemIndex < 6 ? "eager" : "lazy";
+    btn.appendChild(img);
+    galleryEl.appendChild(btn);
+    const itemData = {
+      element: btn,
+      img,
+      slideViewport: btn,
+      slideTrack: null,
+      slideshowSlides: slides,
+      currentSlideIndex: 0,
+      slideDelay: null,
+      slideTween: null,
+      slideshowPaused: true,
+      slidePauseMul: 1,
+      slideSpeedMul: 1,
+      slideChaos: 0,
+      slideshowResumeStaggerDone: true,
+      driftTween: null,
+      driftDelay: null,
+      driftSuspended: true,
+      driftFormationIdle: true,
+      driftGridX: 0,
+      driftGridY: 0,
+      row: 0,
+      col: 0,
+      spanCols: 1,
+      spanRows: 1,
+      baseX: 0,
+      baseY: 0,
+      imageUrl: slide0.url,
+      fullImageUrl: slide0.fullImageUrl,
+      index: itemIndex,
+      overlayMeta: this.buildOverlayMeta(
+        slide0.catalogEntry ||
+          (entry.type === "remote"
+            ? {
+                type: "remote",
+                overlayIndex:
+                  slide0.overlayIndex ?? entry.overlayIndex ?? itemIndex
+              }
+            : entry)
+      )
+    };
+    this.gridItems.push(itemData);
+  }
+  buildProjectGallipoliView() {
+    const root = this.projectGallipoliEl;
+    const galleryEl = this.projectGallipoliGallery;
+    const heroImg = document.getElementById("projectGallipoliHeroImg");
+    const heroBtn = document.getElementById("projectGallipoliHeroBtn");
+    if (!root || !galleryEl || !heroImg) return;
+
+    this.teardownGallipoliScrollReveal();
+    this.gridContainer.innerHTML = "";
+    this.gridItems = [];
+    this.gallipoliHeroItemData = null;
+    if (heroBtn) heroBtn.disabled = true;
+
+    const rawItems = this.getDisplayItemsForGrid();
+    const entries = [...rawItems].sort(
+      (a, b) => (a.indexInProject ?? 0) - (b.indexInProject ?? 0)
+    );
+    const rec = this.getActiveProjectRecord();
+    const pid = entries[0]?.projectId;
+    const ord = pid != null ? this.projectOrdinalInPortfolio(pid) : 1;
+
+    let heroIdx = 0;
+    const heroFile = rec && rec.heroImage;
+    if (heroFile) {
+      const hi = entries.findIndex(
+        (e) => String(e.file || "") === String(heroFile)
+      );
+      if (hi >= 0) heroIdx = hi;
+    }
+
+    const heroEntry = entries[heroIdx] || entries[0];
+    const cfg =
+      (typeof window !== "undefined" && window.__PORTFOLIO_CONFIG__) || {};
+    const driveImages = cfg.imagesFrom === "drive";
+    heroImg.decoding = "async";
+    if (driveImages) heroImg.referrerPolicy = "no-referrer";
+    if (heroEntry) {
+      const slidesH = this.buildSlideshowSlides(heroEntry);
+      const sh0 = slidesH[0];
+      if (sh0) {
+        heroImg.src = sh0.url;
+        heroImg.alt = sh0.alt || "";
+        if (heroBtn) {
+          heroBtn.disabled = false;
+          this.gallipoliHeroItemData = {
+            element: heroBtn,
+            img: heroImg,
+            slideViewport: heroBtn,
+            slideTrack: null,
+            slideshowSlides: slidesH,
+            currentSlideIndex: 0,
+            slideDelay: null,
+            slideTween: null,
+            slideshowPaused: true,
+            slidePauseMul: 1,
+            slideSpeedMul: 1,
+            slideChaos: 0,
+            slideshowResumeStaggerDone: true,
+            driftTween: null,
+            driftDelay: null,
+            driftSuspended: true,
+            driftFormationIdle: true,
+            driftGridX: 0,
+            driftGridY: 0,
+            row: 0,
+            col: 0,
+            spanCols: 1,
+            spanRows: 1,
+            baseX: 0,
+            baseY: 0,
+            imageUrl: sh0.url,
+            fullImageUrl: sh0.fullImageUrl,
+            index: -1,
+            overlayMeta: this.buildOverlayMeta(
+              sh0.catalogEntry ||
+                (heroEntry.type === "remote"
+                  ? {
+                      type: "remote",
+                      overlayIndex:
+                        sh0.overlayIndex ?? heroEntry.overlayIndex ?? 0
+                    }
+                  : heroEntry)
+            )
+          };
+          this.gridItems.push(this.gallipoliHeroItemData);
+        }
+      } else {
+        heroImg.removeAttribute("src");
+        heroImg.alt = "";
+      }
+    } else {
+      heroImg.removeAttribute("src");
+      heroImg.alt = "";
+    }
+
+    const eyebrowEl = document.getElementById("projectGallipoliEyebrow");
+    if (eyebrowEl) {
+      const label =
+        rec &&
+        rec.gallipoliProjectLabel &&
+        String(rec.gallipoliProjectLabel).trim();
+      eyebrowEl.textContent =
+        label || `PROJECT ${String(ord).padStart(2, "0")}`;
+    }
+    const titleEl = document.getElementById("projectGallipoliTitle");
+    if (titleEl) titleEl.textContent = (rec && rec.title) || "";
+
+    const tagEl = document.getElementById("projectGallipoliTagline");
+    if (tagEl) {
+      const tag =
+        rec &&
+        rec.gallipoliHeroTagline &&
+        String(rec.gallipoliHeroTagline).trim();
+      if (tag) {
+        tagEl.textContent = tag;
+        tagEl.removeAttribute("hidden");
+      } else {
+        tagEl.textContent = "";
+        tagEl.setAttribute("hidden", "");
+      }
+    }
+
+    const interWrap = document.getElementById("projectGallipoliInterludeWrap");
+    const interEl = document.getElementById("projectGallipoliInterlude");
+    const line =
+      rec && rec.gallipoliInterlude && String(rec.gallipoliInterlude).trim();
+    if (interWrap && interEl) {
+      if (line) {
+        interEl.textContent = line;
+        interWrap.hidden = false;
+      } else {
+        interEl.textContent = "";
+        interWrap.hidden = true;
+      }
+    }
+
+    galleryEl.innerHTML = "";
+    const galleryEntries =
+      entries.length <= 1 ? [] : entries.filter((_, i) => i !== heroIdx);
+    galleryEntries.forEach((entry, i) => {
+      const spanCls = this.pickGallipoliGalleryClassList(i);
+      this.appendGallipoliGalleryCard(galleryEl, entry, spanCls, i);
+    });
+
+    root.hidden = false;
+    root.removeAttribute("hidden");
+    root.setAttribute("aria-hidden", "false");
+    document.body.classList.add("project-gallipoli-active");
+    if (this.viewport) {
+      gsap.set(this.viewport, { visibility: "hidden", pointerEvents: "none" });
+    }
+    this.setupGallipoliScrollReveal();
+  }
+  teardownProjectGallipoliView() {
+    this.teardownGallipoliScrollReveal();
+    this.gallipoliHeroItemData = null;
+    document.body.classList.remove("project-gallipoli-active");
+    const root = this.projectGallipoliEl;
+    if (root) {
+      root.hidden = true;
+      root.setAttribute("hidden", "");
+      root.setAttribute("aria-hidden", "true");
+    }
+    if (this.projectGallipoliGallery) this.projectGallipoliGallery.innerHTML = "";
+    const heroBtnEl = document.getElementById("projectGallipoliHeroBtn");
+    if (heroBtnEl) heroBtnEl.disabled = true;
+    const heroImg = document.getElementById("projectGallipoliHeroImg");
+    if (heroImg) {
+      heroImg.removeAttribute("src");
+      heroImg.alt = "";
+    }
+    const tagEl = document.getElementById("projectGallipoliTagline");
+    if (tagEl) {
+      tagEl.textContent = "";
+      tagEl.removeAttribute("hidden");
+    }
+    const interW = document.getElementById("projectGallipoliInterludeWrap");
+    const interP = document.getElementById("projectGallipoliInterlude");
+    if (interP) interP.textContent = "";
+    if (interW) interW.hidden = true;
+    if (this.viewport) {
+      gsap.set(this.viewport, { visibility: "visible", pointerEvents: "auto" });
+    }
+  }
+  teardownGallipoliDayScrollReveal() {
+    if (this._gallipoliDayRevealIO) {
+      this._gallipoliDayRevealIO.disconnect();
+      this._gallipoliDayRevealIO = null;
+    }
+  }
+  setupGallipoliDayScrollReveal() {
+    this.teardownGallipoliDayScrollReveal();
+    const root = this.projectGallipoliDayEl;
+    if (!root || root.hidden) return;
+    const cards = root.querySelectorAll(".project-gallipoli-day__card");
+    const nodes = [...cards];
+    nodes.forEach((el, i) => {
+      el.classList.remove("is-inview");
+      el.style.setProperty(
+        "--reveal-delay",
+        `${Math.min(i * 0.065, 0.55)}s`
+      );
+    });
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((en) => {
+          if (en.isIntersecting) {
+            en.target.classList.add("is-inview");
+            io.unobserve(en.target);
+          }
+        });
+      },
+      { root, rootMargin: "0px 0px -8% 0px", threshold: 0.06 }
+    );
+    nodes.forEach((el) => io.observe(el));
+    this._gallipoliDayRevealIO = io;
+  }
+  pickGallipoliDayGalleryClassList(index) {
+    const pattern = [
+      "project-gallipoli-day__card--full",
+      "project-gallipoli-day__card--full",
+      "project-gallipoli-day__card--half",
+      "project-gallipoli-day__card--half",
+      "project-gallipoli-day__card--full",
+      "project-gallipoli-day__card--tall",
+      "project-gallipoli-day__card--wide",
+      "project-gallipoli-day__card--full",
+      "project-gallipoli-day__card--half",
+      "project-gallipoli-day__card--half"
+    ];
+    return pattern[index % pattern.length];
+  }
+  appendGallipoliDayGalleryCard(galleryEl, entry, spanClasses, itemIndex) {
+    if (!galleryEl || !entry) return;
+    const cfg =
+      (typeof window !== "undefined" && window.__PORTFOLIO_CONFIG__) || {};
+    const driveImages = cfg.imagesFrom === "drive";
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = `project-gallipoli-day__card ${spanClasses}`;
+    const img = document.createElement("img");
+    img.decoding = "async";
+    if (driveImages) img.referrerPolicy = "no-referrer";
+    const slides = this.buildSlideshowSlides(entry);
+    const slide0 = slides[0];
+    img.src = slide0.url;
+    img.alt = slide0.alt;
+    img.loading = itemIndex < 5 ? "eager" : "lazy";
+    btn.appendChild(img);
+    galleryEl.appendChild(btn);
+    const itemData = {
+      element: btn,
+      img,
+      slideViewport: btn,
+      slideTrack: null,
+      slideshowSlides: slides,
+      currentSlideIndex: 0,
+      slideDelay: null,
+      slideTween: null,
+      slideshowPaused: true,
+      slidePauseMul: 1,
+      slideSpeedMul: 1,
+      slideChaos: 0,
+      slideshowResumeStaggerDone: true,
+      driftTween: null,
+      driftDelay: null,
+      driftSuspended: true,
+      driftFormationIdle: true,
+      driftGridX: 0,
+      driftGridY: 0,
+      row: 0,
+      col: 0,
+      spanCols: 1,
+      spanRows: 1,
+      baseX: 0,
+      baseY: 0,
+      imageUrl: slide0.url,
+      fullImageUrl: slide0.fullImageUrl,
+      index: itemIndex,
+      overlayMeta: this.buildOverlayMeta(
+        slide0.catalogEntry ||
+          (entry.type === "remote"
+            ? {
+                type: "remote",
+                overlayIndex:
+                  slide0.overlayIndex ?? entry.overlayIndex ?? itemIndex
+              }
+            : entry)
+      )
+    };
+    this.gridItems.push(itemData);
+  }
+  buildProjectGallipoliDayView() {
+    const root = this.projectGallipoliDayEl;
+    const galleryEl = this.projectGallipoliDayGallery;
+    const heroImg = document.getElementById("projectGallipoliDayHeroImg");
+    const heroBtn = document.getElementById("projectGallipoliDayHeroBtn");
+    if (!root || !galleryEl || !heroImg) return;
+
+    this.teardownGallipoliDayScrollReveal();
+    this.gridContainer.innerHTML = "";
+    this.gridItems = [];
+    this.gallipoliDayHeroItemData = null;
+    if (heroBtn) heroBtn.disabled = true;
+
+    const rawItems = this.getDisplayItemsForGrid();
+    const entries = [...rawItems].sort(
+      (a, b) => (a.indexInProject ?? 0) - (b.indexInProject ?? 0)
+    );
+    const rec = this.getActiveProjectRecord();
+    const pid = entries[0]?.projectId;
+    const ord = pid != null ? this.projectOrdinalInPortfolio(pid) : 1;
+
+    let heroIdx = 0;
+    const heroFile = rec && rec.heroImage;
+    if (heroFile) {
+      const hi = entries.findIndex(
+        (e) => String(e.file || "") === String(heroFile)
+      );
+      if (hi >= 0) heroIdx = hi;
+    }
+
+    const heroEntry = entries[heroIdx] || entries[0];
+    const cfg =
+      (typeof window !== "undefined" && window.__PORTFOLIO_CONFIG__) || {};
+    const driveImages = cfg.imagesFrom === "drive";
+    heroImg.decoding = "async";
+    if (driveImages) heroImg.referrerPolicy = "no-referrer";
+    if (heroEntry) {
+      const slidesH = this.buildSlideshowSlides(heroEntry);
+      const sh0 = slidesH[0];
+      if (sh0) {
+        heroImg.src = sh0.url;
+        heroImg.alt = sh0.alt || "";
+        if (heroBtn) {
+          heroBtn.disabled = false;
+          this.gallipoliDayHeroItemData = {
+            element: heroBtn,
+            img: heroImg,
+            slideViewport: heroBtn,
+            slideTrack: null,
+            slideshowSlides: slidesH,
+            currentSlideIndex: 0,
+            slideDelay: null,
+            slideTween: null,
+            slideshowPaused: true,
+            slidePauseMul: 1,
+            slideSpeedMul: 1,
+            slideChaos: 0,
+            slideshowResumeStaggerDone: true,
+            driftTween: null,
+            driftDelay: null,
+            driftSuspended: true,
+            driftFormationIdle: true,
+            driftGridX: 0,
+            driftGridY: 0,
+            row: 0,
+            col: 0,
+            spanCols: 1,
+            spanRows: 1,
+            baseX: 0,
+            baseY: 0,
+            imageUrl: sh0.url,
+            fullImageUrl: sh0.fullImageUrl,
+            index: -1,
+            overlayMeta: this.buildOverlayMeta(
+              sh0.catalogEntry ||
+                (heroEntry.type === "remote"
+                  ? {
+                      type: "remote",
+                      overlayIndex:
+                        sh0.overlayIndex ?? heroEntry.overlayIndex ?? 0
+                    }
+                  : heroEntry)
+            )
+          };
+          this.gridItems.push(this.gallipoliDayHeroItemData);
+        }
+      } else {
+        heroImg.removeAttribute("src");
+        heroImg.alt = "";
+      }
+    } else {
+      heroImg.removeAttribute("src");
+      heroImg.alt = "";
+    }
+
+    const eyebrowEl = document.getElementById("projectGallipoliDayEyebrow");
+    if (eyebrowEl) {
+      const label =
+        rec &&
+        rec.gallipoliDayProjectLabel &&
+        String(rec.gallipoliDayProjectLabel).trim();
+      eyebrowEl.textContent =
+        label || `PROJECT ${String(ord).padStart(2, "0")}`;
+    }
+    const titleEl = document.getElementById("projectGallipoliDayTitle");
+    if (titleEl) {
+      const ht =
+        rec &&
+        rec.gallipoliDayHeroTitle &&
+        String(rec.gallipoliDayHeroTitle).trim();
+      titleEl.textContent = ht || (rec && rec.title) || "";
+    }
+    const subEl = document.getElementById("projectGallipoliDaySubtitle");
+    if (subEl) {
+      const st =
+        rec &&
+        rec.gallipoliDaySubtitle &&
+        String(rec.gallipoliDaySubtitle).trim();
+      if (st) {
+        subEl.textContent = st;
+        subEl.removeAttribute("hidden");
+      } else {
+        subEl.textContent = "";
+        subEl.setAttribute("hidden", "");
+      }
+    }
+    const tagEl = document.getElementById("projectGallipoliDayTagline");
+    if (tagEl) {
+      const tag =
+        rec &&
+        rec.gallipoliDayHeroTagline &&
+        String(rec.gallipoliDayHeroTagline).trim();
+      if (tag) {
+        tagEl.textContent = tag;
+        tagEl.removeAttribute("hidden");
+      } else {
+        tagEl.textContent = "";
+        tagEl.setAttribute("hidden", "");
+      }
+    }
+
+    const interWrap = document.getElementById(
+      "projectGallipoliDayInterludeWrap"
+    );
+    const interEl = document.getElementById("projectGallipoliDayInterlude");
+    const line =
+      rec &&
+      rec.gallipoliDayInterlude &&
+      String(rec.gallipoliDayInterlude).trim();
+    if (interWrap && interEl) {
+      if (line) {
+        interEl.textContent = line;
+        interWrap.hidden = false;
+      } else {
+        interEl.textContent = "";
+        interWrap.hidden = true;
+      }
+    }
+
+    galleryEl.innerHTML = "";
+    const galleryEntries =
+      entries.length <= 1 ? [] : entries.filter((_, i) => i !== heroIdx);
+    galleryEntries.forEach((entry, i) => {
+      const spanCls = this.pickGallipoliDayGalleryClassList(i);
+      this.appendGallipoliDayGalleryCard(galleryEl, entry, spanCls, i);
+    });
+
+    root.hidden = false;
+    root.removeAttribute("hidden");
+    root.setAttribute("aria-hidden", "false");
+    document.body.classList.add("project-gallipoli-day-active");
+    if (this.viewport) {
+      gsap.set(this.viewport, { visibility: "hidden", pointerEvents: "none" });
+    }
+    this.setupGallipoliDayScrollReveal();
+  }
+  teardownProjectGallipoliDayView() {
+    this.teardownGallipoliDayScrollReveal();
+    this.gallipoliDayHeroItemData = null;
+    document.body.classList.remove("project-gallipoli-day-active");
+    const root = this.projectGallipoliDayEl;
+    if (root) {
+      root.hidden = true;
+      root.setAttribute("hidden", "");
+      root.setAttribute("aria-hidden", "true");
+    }
+    if (this.projectGallipoliDayGallery) {
+      this.projectGallipoliDayGallery.innerHTML = "";
+    }
+    const heroBtnEl = document.getElementById("projectGallipoliDayHeroBtn");
+    if (heroBtnEl) heroBtnEl.disabled = true;
+    const heroImg = document.getElementById("projectGallipoliDayHeroImg");
+    if (heroImg) {
+      heroImg.removeAttribute("src");
+      heroImg.alt = "";
+    }
+    const subEl = document.getElementById("projectGallipoliDaySubtitle");
+    if (subEl) {
+      subEl.textContent = "";
+      subEl.removeAttribute("hidden");
+    }
+    const tagEl = document.getElementById("projectGallipoliDayTagline");
+    if (tagEl) {
+      tagEl.textContent = "";
+      tagEl.removeAttribute("hidden");
+    }
+    const interW = document.getElementById("projectGallipoliDayInterludeWrap");
+    const interP = document.getElementById("projectGallipoliDayInterlude");
+    if (interP) interP.textContent = "";
+    if (interW) interW.hidden = true;
+    if (this.viewport) {
+      gsap.set(this.viewport, { visibility: "visible", pointerEvents: "auto" });
+    }
+  }
+  teardownErniaScrollReveal() {
+    if (this._erniaRevealIO) {
+      this._erniaRevealIO.disconnect();
+      this._erniaRevealIO = null;
+    }
+  }
+  setupErniaScrollReveal() {
+    this.teardownErniaScrollReveal();
+    const root = this.projectErniaEl;
+    if (!root || root.hidden) return;
+    const cards = root.querySelectorAll(".project-ernia__card");
+    const nodes = [...cards];
+    nodes.forEach((el, i) => {
+      el.classList.remove("is-inview");
+      el.style.setProperty(
+        "--reveal-delay",
+        `${Math.min(i * 0.042, 0.38)}s`
+      );
+    });
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((en) => {
+          if (en.isIntersecting) {
+            en.target.classList.add("is-inview");
+            io.unobserve(en.target);
+          }
+        });
+      },
+      { root, rootMargin: "0px 0px -6% 0px", threshold: 0.055 }
+    );
+    nodes.forEach((el) => io.observe(el));
+    this._erniaRevealIO = io;
+  }
+  pickErniaGalleryClassList(index) {
+    const pattern = [
+      "project-ernia__card--full",
+      "project-ernia__card--tall",
+      "project-ernia__card--wide",
+      "project-ernia__card--full",
+      "project-ernia__card--half",
+      "project-ernia__card--half",
+      "project-ernia__card--stage",
+      "project-ernia__card--side"
+    ];
+    return pattern[index % pattern.length];
+  }
+  appendErniaGalleryCard(galleryEl, entry, spanClasses, itemIndex) {
+    if (!galleryEl || !entry) return;
+    const cfg =
+      (typeof window !== "undefined" && window.__PORTFOLIO_CONFIG__) || {};
+    const driveImages = cfg.imagesFrom === "drive";
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = `project-ernia__card ${spanClasses}`;
+    const img = document.createElement("img");
+    img.decoding = "async";
+    if (driveImages) img.referrerPolicy = "no-referrer";
+    const slides = this.buildSlideshowSlides(entry);
+    const slide0 = slides[0];
+    img.src = slide0.url;
+    img.alt = slide0.alt;
+    img.loading = itemIndex < 5 ? "eager" : "lazy";
+    btn.appendChild(img);
+    galleryEl.appendChild(btn);
+    const itemData = {
+      element: btn,
+      img,
+      slideViewport: btn,
+      slideTrack: null,
+      slideshowSlides: slides,
+      currentSlideIndex: 0,
+      slideDelay: null,
+      slideTween: null,
+      slideshowPaused: true,
+      slidePauseMul: 1,
+      slideSpeedMul: 1,
+      slideChaos: 0,
+      slideshowResumeStaggerDone: true,
+      driftTween: null,
+      driftDelay: null,
+      driftSuspended: true,
+      driftFormationIdle: true,
+      driftGridX: 0,
+      driftGridY: 0,
+      row: 0,
+      col: 0,
+      spanCols: 1,
+      spanRows: 1,
+      baseX: 0,
+      baseY: 0,
+      imageUrl: slide0.url,
+      fullImageUrl: slide0.fullImageUrl,
+      index: itemIndex,
+      overlayMeta: this.buildOverlayMeta(
+        slide0.catalogEntry ||
+          (entry.type === "remote"
+            ? {
+                type: "remote",
+                overlayIndex:
+                  slide0.overlayIndex ?? entry.overlayIndex ?? itemIndex
+              }
+            : entry)
+      )
+    };
+    this.gridItems.push(itemData);
+  }
+  buildProjectErniaView() {
+    const root = this.projectErniaEl;
+    const galleryEl = this.projectErniaGallery;
+    const heroImg = document.getElementById("projectErniaHeroImg");
+    const heroBtn = document.getElementById("projectErniaHeroBtn");
+    if (!root || !galleryEl || !heroImg) return;
+
+    this.teardownErniaScrollReveal();
+    this.gridContainer.innerHTML = "";
+    this.gridItems = [];
+    this.erniaHeroItemData = null;
+    if (heroBtn) heroBtn.disabled = true;
+
+    const rawItems = this.getDisplayItemsForGrid();
+    const entries = [...rawItems].sort(
+      (a, b) => (a.indexInProject ?? 0) - (b.indexInProject ?? 0)
+    );
+    const rec = this.getActiveProjectRecord();
+    const pid = entries[0]?.projectId;
+    const ord = pid != null ? this.projectOrdinalInPortfolio(pid) : 1;
+
+    let heroIdx = 0;
+    const heroFile = rec && rec.heroImage;
+    if (heroFile) {
+      const hi = entries.findIndex(
+        (e) => String(e.file || "") === String(heroFile)
+      );
+      if (hi >= 0) heroIdx = hi;
+    }
+
+    const heroEntry = entries[heroIdx] || entries[0];
+    const cfg =
+      (typeof window !== "undefined" && window.__PORTFOLIO_CONFIG__) || {};
+    const driveImages = cfg.imagesFrom === "drive";
+    heroImg.decoding = "async";
+    if (driveImages) heroImg.referrerPolicy = "no-referrer";
+    if (heroEntry) {
+      const slidesH = this.buildSlideshowSlides(heroEntry);
+      const sh0 = slidesH[0];
+      if (sh0) {
+        heroImg.src = sh0.url;
+        heroImg.alt = sh0.alt || "";
+        if (heroBtn) {
+          heroBtn.disabled = false;
+          this.erniaHeroItemData = {
+            element: heroBtn,
+            img: heroImg,
+            slideViewport: heroBtn,
+            slideTrack: null,
+            slideshowSlides: slidesH,
+            currentSlideIndex: 0,
+            slideDelay: null,
+            slideTween: null,
+            slideshowPaused: true,
+            slidePauseMul: 1,
+            slideSpeedMul: 1,
+            slideChaos: 0,
+            slideshowResumeStaggerDone: true,
+            driftTween: null,
+            driftDelay: null,
+            driftSuspended: true,
+            driftFormationIdle: true,
+            driftGridX: 0,
+            driftGridY: 0,
+            row: 0,
+            col: 0,
+            spanCols: 1,
+            spanRows: 1,
+            baseX: 0,
+            baseY: 0,
+            imageUrl: sh0.url,
+            fullImageUrl: sh0.fullImageUrl,
+            index: -1,
+            overlayMeta: this.buildOverlayMeta(
+              sh0.catalogEntry ||
+                (heroEntry.type === "remote"
+                  ? {
+                      type: "remote",
+                      overlayIndex:
+                        sh0.overlayIndex ?? heroEntry.overlayIndex ?? 0
+                    }
+                  : heroEntry)
+            )
+          };
+          this.gridItems.push(this.erniaHeroItemData);
+        }
+      } else {
+        heroImg.removeAttribute("src");
+        heroImg.alt = "";
+      }
+    } else {
+      heroImg.removeAttribute("src");
+      heroImg.alt = "";
+    }
+
+    const eyebrowEl = document.getElementById("projectErniaEyebrow");
+    if (eyebrowEl) {
+      const label =
+        rec && rec.erniaProjectLabel && String(rec.erniaProjectLabel).trim();
+      eyebrowEl.textContent =
+        label || `PROJECT ${String(ord).padStart(2, "0")}`;
+    }
+    const titleEl = document.getElementById("projectErniaTitle");
+    if (titleEl) titleEl.textContent = (rec && rec.title) || "";
+
+    const tagEl = document.getElementById("projectErniaTagline");
+    if (tagEl) {
+      const tag =
+        rec && rec.erniaHeroTagline && String(rec.erniaHeroTagline).trim();
+      if (tag) {
+        tagEl.textContent = tag;
+        tagEl.removeAttribute("hidden");
+      } else {
+        tagEl.textContent = "";
+        tagEl.setAttribute("hidden", "");
+      }
+    }
+
+    const interWrap = document.getElementById("projectErniaInterludeWrap");
+    const interEl = document.getElementById("projectErniaInterlude");
+    const line =
+      rec && rec.erniaInterlude && String(rec.erniaInterlude).trim();
+    if (interWrap && interEl) {
+      if (line) {
+        interEl.textContent = line;
+        interWrap.hidden = false;
+      } else {
+        interEl.textContent = "";
+        interWrap.hidden = true;
+      }
+    }
+
+    galleryEl.innerHTML = "";
+    const galleryEntries =
+      entries.length <= 1 ? [] : entries.filter((_, i) => i !== heroIdx);
+    galleryEntries.forEach((entry, i) => {
+      const spanCls = this.pickErniaGalleryClassList(i);
+      this.appendErniaGalleryCard(galleryEl, entry, spanCls, i);
+    });
+
+    root.hidden = false;
+    root.removeAttribute("hidden");
+    root.setAttribute("aria-hidden", "false");
+    document.body.classList.add("project-ernia-active");
+    if (this.viewport) {
+      gsap.set(this.viewport, { visibility: "hidden", pointerEvents: "none" });
+    }
+    this.setupErniaScrollReveal();
+  }
+  teardownProjectErniaView() {
+    this.teardownErniaScrollReveal();
+    this.erniaHeroItemData = null;
+    document.body.classList.remove("project-ernia-active");
+    const root = this.projectErniaEl;
+    if (root) {
+      root.hidden = true;
+      root.setAttribute("hidden", "");
+      root.setAttribute("aria-hidden", "true");
+    }
+    if (this.projectErniaGallery) this.projectErniaGallery.innerHTML = "";
+    const heroBtnEl = document.getElementById("projectErniaHeroBtn");
+    if (heroBtnEl) heroBtnEl.disabled = true;
+    const heroImg = document.getElementById("projectErniaHeroImg");
+    if (heroImg) {
+      heroImg.removeAttribute("src");
+      heroImg.alt = "";
+    }
+    const tagEl = document.getElementById("projectErniaTagline");
+    if (tagEl) {
+      tagEl.textContent = "";
+      tagEl.removeAttribute("hidden");
+    }
+    const interW = document.getElementById("projectErniaInterludeWrap");
+    const interP = document.getElementById("projectErniaInterlude");
+    if (interP) interP.textContent = "";
+    if (interW) interW.hidden = true;
+    if (this.viewport) {
+      gsap.set(this.viewport, { visibility: "visible", pointerEvents: "auto" });
+    }
+  }
+  teardownLaureaScrollReveal() {
+    if (this._laureaRevealIO) {
+      this._laureaRevealIO.disconnect();
+      this._laureaRevealIO = null;
+    }
+  }
+  setupLaureaScrollReveal() {
+    this.teardownLaureaScrollReveal();
+    const root = this.projectLaureaEl;
+    if (!root || root.hidden) return;
+    const cards = root.querySelectorAll(".project-laurea__card");
+    const nodes = [...cards];
+    nodes.forEach((el, i) => {
+      el.classList.remove("is-inview");
+      el.style.setProperty(
+        "--reveal-delay",
+        `${Math.min(i * 0.07, 0.55)}s`
+      );
+    });
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((en) => {
+          if (en.isIntersecting) {
+            en.target.classList.add("is-inview");
+            io.unobserve(en.target);
+          }
+        });
+      },
+      { root, rootMargin: "0px 0px -6% 0px", threshold: 0.055 }
+    );
+    nodes.forEach((el) => io.observe(el));
+    this._laureaRevealIO = io;
+  }
+  appendLaureaGalleryCard(galleryEl, entry, itemIndex) {
+    if (!galleryEl || !entry) return;
+    const cfg =
+      (typeof window !== "undefined" && window.__PORTFOLIO_CONFIG__) || {};
+    const driveImages = cfg.imagesFrom === "drive";
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "project-laurea__card";
+    const img = document.createElement("img");
+    img.decoding = "async";
+    if (driveImages) img.referrerPolicy = "no-referrer";
+    const slides = this.buildSlideshowSlides(entry);
+    const slide0 = slides[0];
+    img.src = slide0.url;
+    img.alt = slide0.alt;
+    img.loading = itemIndex < 4 ? "eager" : "lazy";
+    btn.appendChild(img);
+    galleryEl.appendChild(btn);
+    const itemData = {
+      element: btn,
+      img,
+      slideViewport: btn,
+      slideTrack: null,
+      slideshowSlides: slides,
+      currentSlideIndex: 0,
+      slideDelay: null,
+      slideTween: null,
+      slideshowPaused: true,
+      slidePauseMul: 1,
+      slideSpeedMul: 1,
+      slideChaos: 0,
+      slideshowResumeStaggerDone: true,
+      driftTween: null,
+      driftDelay: null,
+      driftSuspended: true,
+      driftFormationIdle: true,
+      driftGridX: 0,
+      driftGridY: 0,
+      row: 0,
+      col: 0,
+      spanCols: 1,
+      spanRows: 1,
+      baseX: 0,
+      baseY: 0,
+      imageUrl: slide0.url,
+      fullImageUrl: slide0.fullImageUrl,
+      index: itemIndex,
+      overlayMeta: this.buildOverlayMeta(
+        slide0.catalogEntry ||
+          (entry.type === "remote"
+            ? {
+                type: "remote",
+                overlayIndex:
+                  slide0.overlayIndex ?? entry.overlayIndex ?? itemIndex
+              }
+            : entry)
+      )
+    };
+    this.gridItems.push(itemData);
+  }
+  buildProjectLaureaView() {
+    const root = this.projectLaureaEl;
+    const galleryEl = this.projectLaureaGallery;
+    const heroImg = document.getElementById("projectLaureaHeroImg");
+    const heroBtn = document.getElementById("projectLaureaHeroBtn");
+    if (!root || !galleryEl || !heroImg) return;
+
+    this.teardownLaureaScrollReveal();
+    this.gridContainer.innerHTML = "";
+    this.gridItems = [];
+    this.laureaHeroItemData = null;
+    if (heroBtn) heroBtn.disabled = true;
+
+    const rawItems = this.getDisplayItemsForGrid();
+    const entries = [...rawItems].sort(
+      (a, b) => (a.indexInProject ?? 0) - (b.indexInProject ?? 0)
+    );
+    const rec = this.getActiveProjectRecord();
+    const pid = entries[0]?.projectId;
+    const ord = pid != null ? this.projectOrdinalInPortfolio(pid) : 1;
+
+    let heroIdx = 0;
+    const heroFile = rec && rec.heroImage;
+    if (heroFile) {
+      const hi = entries.findIndex(
+        (e) => String(e.file || "") === String(heroFile)
+      );
+      if (hi >= 0) heroIdx = hi;
+    }
+
+    const heroEntry = entries[heroIdx] || entries[0];
+    const cfg =
+      (typeof window !== "undefined" && window.__PORTFOLIO_CONFIG__) || {};
+    const driveImages = cfg.imagesFrom === "drive";
+    heroImg.decoding = "async";
+    if (driveImages) heroImg.referrerPolicy = "no-referrer";
+    if (heroEntry) {
+      const slidesH = this.buildSlideshowSlides(heroEntry);
+      const sh0 = slidesH[0];
+      if (sh0) {
+        heroImg.src = sh0.url;
+        heroImg.alt = sh0.alt || "";
+        if (heroBtn) {
+          heroBtn.disabled = false;
+          this.laureaHeroItemData = {
+            element: heroBtn,
+            img: heroImg,
+            slideViewport: heroBtn,
+            slideTrack: null,
+            slideshowSlides: slidesH,
+            currentSlideIndex: 0,
+            slideDelay: null,
+            slideTween: null,
+            slideshowPaused: true,
+            slidePauseMul: 1,
+            slideSpeedMul: 1,
+            slideChaos: 0,
+            slideshowResumeStaggerDone: true,
+            driftTween: null,
+            driftDelay: null,
+            driftSuspended: true,
+            driftFormationIdle: true,
+            driftGridX: 0,
+            driftGridY: 0,
+            row: 0,
+            col: 0,
+            spanCols: 1,
+            spanRows: 1,
+            baseX: 0,
+            baseY: 0,
+            imageUrl: sh0.url,
+            fullImageUrl: sh0.fullImageUrl,
+            index: -1,
+            overlayMeta: this.buildOverlayMeta(
+              sh0.catalogEntry ||
+                (heroEntry.type === "remote"
+                  ? {
+                      type: "remote",
+                      overlayIndex:
+                        sh0.overlayIndex ?? heroEntry.overlayIndex ?? 0
+                    }
+                  : heroEntry)
+            )
+          };
+          this.gridItems.push(this.laureaHeroItemData);
+        }
+      } else {
+        heroImg.removeAttribute("src");
+        heroImg.alt = "";
+      }
+    } else {
+      heroImg.removeAttribute("src");
+      heroImg.alt = "";
+    }
+
+    const eyebrowEl = document.getElementById("projectLaureaEyebrow");
+    if (eyebrowEl) {
+      const label =
+        rec && rec.laureaProjectLabel && String(rec.laureaProjectLabel).trim();
+      eyebrowEl.textContent =
+        label || `PROJECT ${String(ord).padStart(2, "0")}`;
+    }
+    const titleEl = document.getElementById("projectLaureaTitle");
+    if (titleEl) titleEl.textContent = (rec && rec.title) || "";
+
+    const tagEl = document.getElementById("projectLaureaTagline");
+    if (tagEl) {
+      const tag =
+        rec && rec.laureaHeroTagline && String(rec.laureaHeroTagline).trim();
+      if (tag) {
+        tagEl.textContent = tag;
+        tagEl.removeAttribute("hidden");
+      } else {
+        tagEl.textContent = "";
+        tagEl.setAttribute("hidden", "");
+      }
+    }
+
+    const proseEl = document.getElementById("projectLaureaProse");
+    const proseWrap = document.getElementById("projectLaureaProseWrap");
+    if (proseEl && proseWrap) {
+      proseEl.innerHTML = "";
+      let blocks = [];
+      if (rec && Array.isArray(rec.laureaEditorialBlocks)) {
+        blocks = rec.laureaEditorialBlocks
+          .map((s) => String(s).trim())
+          .filter(Boolean)
+          .slice(0, 3);
+      }
+      if (!blocks.length && rec && rec.summary) {
+        blocks = String(rec.summary)
+          .split(/\n\n+/)
+          .map((s) => s.trim())
+          .filter(Boolean)
+          .slice(0, 3);
+      }
+      if (blocks.length) {
+        blocks.forEach((text) => {
+          const p = document.createElement("p");
+          p.textContent = text;
+          proseEl.appendChild(p);
+        });
+        proseWrap.hidden = false;
+        proseWrap.removeAttribute("hidden");
+      } else {
+        proseWrap.hidden = true;
+        proseWrap.setAttribute("hidden", "");
+      }
+    }
+
+    galleryEl.innerHTML = "";
+    const galleryEntries =
+      entries.length <= 1 ? [] : entries.filter((_, i) => i !== heroIdx);
+    galleryEntries.forEach((entry, i) => {
+      this.appendLaureaGalleryCard(galleryEl, entry, i);
+    });
+
+    root.hidden = false;
+    root.removeAttribute("hidden");
+    root.setAttribute("aria-hidden", "false");
+    document.body.classList.add("project-laurea-active");
+    if (this.viewport) {
+      gsap.set(this.viewport, { visibility: "hidden", pointerEvents: "none" });
+    }
+    this.setupLaureaScrollReveal();
+  }
+  teardownProjectLaureaView() {
+    this.teardownLaureaScrollReveal();
+    this.laureaHeroItemData = null;
+    document.body.classList.remove("project-laurea-active");
+    const root = this.projectLaureaEl;
+    if (root) {
+      root.hidden = true;
+      root.setAttribute("hidden", "");
+      root.setAttribute("aria-hidden", "true");
+    }
+    if (this.projectLaureaGallery) this.projectLaureaGallery.innerHTML = "";
+    const heroBtnEl = document.getElementById("projectLaureaHeroBtn");
+    if (heroBtnEl) heroBtnEl.disabled = true;
+    const heroImg = document.getElementById("projectLaureaHeroImg");
+    if (heroImg) {
+      heroImg.removeAttribute("src");
+      heroImg.alt = "";
+    }
+    const tagEl = document.getElementById("projectLaureaTagline");
+    if (tagEl) {
+      tagEl.textContent = "";
+      tagEl.removeAttribute("hidden");
+    }
+    const proseEl = document.getElementById("projectLaureaProse");
+    const proseWrap = document.getElementById("projectLaureaProseWrap");
+    if (proseEl) proseEl.innerHTML = "";
+    if (proseWrap) {
+      proseWrap.hidden = true;
+      proseWrap.setAttribute("hidden", "");
+    }
+    if (this.viewport) {
+      gsap.set(this.viewport, { visibility: "visible", pointerEvents: "auto" });
+    }
+  }
+  teardownTabooScrollReveal() {
+    if (this._tabooRevealIO) {
+      this._tabooRevealIO.disconnect();
+      this._tabooRevealIO = null;
+    }
+  }
+  setupTabooScrollReveal() {
+    this.teardownTabooScrollReveal();
+    const root = this.projectTabooEl;
+    if (!root || root.hidden) return;
+    const cards = root.querySelectorAll(".project-taboo__card");
+    const nodes = [...cards];
+    nodes.forEach((el, i) => {
+      el.classList.remove("is-inview");
+      el.style.setProperty(
+        "--reveal-delay",
+        `${Math.min(i * 0.048, 0.4)}s`
+      );
+    });
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((en) => {
+          if (en.isIntersecting) {
+            en.target.classList.add("is-inview");
+            io.unobserve(en.target);
+          }
+        });
+      },
+      { root, rootMargin: "0px 0px -6% 0px", threshold: 0.06 }
+    );
+    nodes.forEach((el) => io.observe(el));
+    this._tabooRevealIO = io;
+  }
+  /**
+   * Ritmo galleria Taboo: panoramiche e coppie, qualche verticale; niente terzine dense.
+   */
+  pickTabooGalleryClassList(index) {
+    const base = [
+      { span: "s12", portrait: false },
+      { span: "s6", portrait: false },
+      { span: "s6", portrait: false },
+      { span: "s12", portrait: true },
+      { span: "s12", portrait: false },
+      { span: "s6", portrait: true },
+      { span: "s6", portrait: true }
+    ];
+    const spec = base[index % base.length];
+    let cls = `project-taboo__card--${spec.span}`;
+    if (spec.portrait) cls += " project-taboo__card--portrait";
+    return cls;
+  }
+  appendTabooGalleryCard(galleryEl, entry, spanClasses, itemIndex) {
+    if (!galleryEl || !entry) return;
+    const cfg =
+      (typeof window !== "undefined" && window.__PORTFOLIO_CONFIG__) || {};
+    const driveImages = cfg.imagesFrom === "drive";
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = `project-taboo__card ${spanClasses}`;
+    const img = document.createElement("img");
+    img.decoding = "async";
+    if (driveImages) img.referrerPolicy = "no-referrer";
+    const slides = this.buildSlideshowSlides(entry);
+    const slide0 = slides[0];
+    img.src = slide0.url;
+    img.alt = slide0.alt;
+    img.loading = itemIndex < 4 ? "eager" : "lazy";
+    btn.appendChild(img);
+    galleryEl.appendChild(btn);
+    const itemData = {
+      element: btn,
+      img,
+      slideViewport: btn,
+      slideTrack: null,
+      slideshowSlides: slides,
+      currentSlideIndex: 0,
+      slideDelay: null,
+      slideTween: null,
+      slideshowPaused: true,
+      slidePauseMul: 1,
+      slideSpeedMul: 1,
+      slideChaos: 0,
+      slideshowResumeStaggerDone: true,
+      driftTween: null,
+      driftDelay: null,
+      driftSuspended: true,
+      driftFormationIdle: true,
+      driftGridX: 0,
+      driftGridY: 0,
+      row: 0,
+      col: 0,
+      spanCols: 1,
+      spanRows: 1,
+      baseX: 0,
+      baseY: 0,
+      imageUrl: slide0.url,
+      fullImageUrl: slide0.fullImageUrl,
+      index: itemIndex,
+      overlayMeta: this.buildOverlayMeta(
+        slide0.catalogEntry ||
+          (entry.type === "remote"
+            ? {
+                type: "remote",
+                overlayIndex:
+                  slide0.overlayIndex ?? entry.overlayIndex ?? itemIndex
+              }
+            : entry)
+      )
+    };
+    this.gridItems.push(itemData);
+  }
+  buildProjectTabooView() {
+    const root = this.projectTabooEl;
+    const galleryEl = this.projectTabooGallery;
+    const heroImg = document.getElementById("projectTabooHeroImg");
+    const heroBtn = document.getElementById("projectTabooHeroBtn");
+    if (!root || !galleryEl || !heroImg) return;
+
+    this.teardownTabooScrollReveal();
+    this.gridContainer.innerHTML = "";
+    this.gridItems = [];
+    this.tabooHeroItemData = null;
+    if (heroBtn) heroBtn.disabled = true;
+
+    const rawItems = this.getDisplayItemsForGrid();
+    const entries = [...rawItems].sort(
+      (a, b) => (a.indexInProject ?? 0) - (b.indexInProject ?? 0)
+    );
+    const rec = this.getActiveProjectRecord();
+    const pid = entries[0]?.projectId;
+    const ord = pid != null ? this.projectOrdinalInPortfolio(pid) : 1;
+
+    let heroIdx = 0;
+    const heroFile = rec && rec.heroImage;
+    if (heroFile) {
+      const hi = entries.findIndex(
+        (e) => String(e.file || "") === String(heroFile)
+      );
+      if (hi >= 0) heroIdx = hi;
+    }
+
+    const heroEntry = entries[heroIdx] || entries[0];
+    const cfg =
+      (typeof window !== "undefined" && window.__PORTFOLIO_CONFIG__) || {};
+    const driveImages = cfg.imagesFrom === "drive";
+    heroImg.decoding = "async";
+    if (driveImages) heroImg.referrerPolicy = "no-referrer";
+    if (heroEntry) {
+      const slidesH = this.buildSlideshowSlides(heroEntry);
+      const sh0 = slidesH[0];
+      if (sh0) {
+        heroImg.src = sh0.url;
+        heroImg.alt = sh0.alt || "";
+        if (heroBtn) {
+          heroBtn.disabled = false;
+          this.tabooHeroItemData = {
+            element: heroBtn,
+            img: heroImg,
+            slideViewport: heroBtn,
+            slideTrack: null,
+            slideshowSlides: slidesH,
+            currentSlideIndex: 0,
+            slideDelay: null,
+            slideTween: null,
+            slideshowPaused: true,
+            slidePauseMul: 1,
+            slideSpeedMul: 1,
+            slideChaos: 0,
+            slideshowResumeStaggerDone: true,
+            driftTween: null,
+            driftDelay: null,
+            driftSuspended: true,
+            driftFormationIdle: true,
+            driftGridX: 0,
+            driftGridY: 0,
+            row: 0,
+            col: 0,
+            spanCols: 1,
+            spanRows: 1,
+            baseX: 0,
+            baseY: 0,
+            imageUrl: sh0.url,
+            fullImageUrl: sh0.fullImageUrl,
+            index: -1,
+            overlayMeta: this.buildOverlayMeta(
+              sh0.catalogEntry ||
+                (heroEntry.type === "remote"
+                  ? {
+                      type: "remote",
+                      overlayIndex:
+                        sh0.overlayIndex ?? heroEntry.overlayIndex ?? 0
+                    }
+                  : heroEntry)
+            )
+          };
+          this.gridItems.push(this.tabooHeroItemData);
+        }
+      } else {
+        heroImg.removeAttribute("src");
+        heroImg.alt = "";
+      }
+    } else {
+      heroImg.removeAttribute("src");
+      heroImg.alt = "";
+    }
+
+    const eyebrowEl = document.getElementById("projectTabooEyebrow");
+    if (eyebrowEl) {
+      const label =
+        rec && rec.tabooProjectLabel && String(rec.tabooProjectLabel).trim();
+      eyebrowEl.textContent =
+        label || `PROJECT ${String(ord).padStart(2, "0")}`;
+    }
+    const titleEl = document.getElementById("projectTabooTitle");
+    if (titleEl) titleEl.textContent = (rec && rec.title) || "";
+    const introEl = document.getElementById("projectTabooHeroIntro");
+    if (introEl) {
+      const custom =
+        rec && rec.tabooHeroIntro && String(rec.tabooHeroIntro).trim();
+      introEl.textContent =
+        custom ||
+        "Reportage nel 2022 all’Albergo Etico di Fènis: un luogo dove accoglienza e lavoro si intrecciano ogni giorno. Le immagini restituiscono contesto e presenza, senza effetto spettacolo.";
+    }
+
+    const editorialEl = document.getElementById("projectTabooEditorial");
+    let editorialBlocks = [];
+    if (
+      rec &&
+      Array.isArray(rec.tabooEditorialBlocks) &&
+      rec.tabooEditorialBlocks.length
+    ) {
+      editorialBlocks = rec.tabooEditorialBlocks
+        .map((s) => String(s).trim())
+        .filter(Boolean);
+    } else {
+      const summary = (rec && rec.summary && String(rec.summary).trim()) || "";
+      editorialBlocks = summary
+        ? summary
+            .split(/\n\n+/)
+            .map((s) => s.trim())
+            .filter(Boolean)
+        : [];
+    }
+    if (editorialEl) {
+      editorialEl.innerHTML = "";
+      const edRoles = [
+        "project-taboo__ed-p--lead",
+        "project-taboo__ed-p--note",
+        "project-taboo__ed-p--outro"
+      ];
+      editorialBlocks.forEach((t, i) => {
+        const p = document.createElement("p");
+        p.className = "project-taboo__ed-p";
+        if (edRoles[i]) p.classList.add(edRoles[i]);
+        p.textContent = t;
+        editorialEl.appendChild(p);
+      });
+    }
+
+    const pullWrap = document.getElementById("projectTabooPullWrap");
+    const pullEl = document.getElementById("projectTabooPullQuote");
+    const pullText =
+      rec && rec.tabooPullQuote && String(rec.tabooPullQuote).trim();
+    if (pullWrap && pullEl) {
+      if (pullText) {
+        pullEl.textContent = pullText;
+        pullWrap.hidden = false;
+      } else {
+        pullEl.textContent = "";
+        pullWrap.hidden = true;
+      }
+    }
+
+    galleryEl.innerHTML = "";
+    const galleryEntries =
+      entries.length <= 1 ? [] : entries.filter((_, i) => i !== heroIdx);
+    galleryEntries.forEach((entry, i) => {
+      const spanCls = this.pickTabooGalleryClassList(i);
+      this.appendTabooGalleryCard(galleryEl, entry, spanCls, i);
+    });
+
+    root.hidden = false;
+    root.removeAttribute("hidden");
+    root.setAttribute("aria-hidden", "false");
+    document.body.classList.add("project-taboo-active");
+    if (this.viewport) {
+      gsap.set(this.viewport, { visibility: "hidden", pointerEvents: "none" });
+    }
+    this.setupTabooScrollReveal();
+  }
+  teardownProjectTabooView() {
+    this.teardownTabooScrollReveal();
+    this.tabooHeroItemData = null;
+    document.body.classList.remove("project-taboo-active");
+    const root = this.projectTabooEl;
+    if (root) {
+      root.hidden = true;
+      root.setAttribute("hidden", "");
+      root.setAttribute("aria-hidden", "true");
+    }
+    if (this.projectTabooGallery) this.projectTabooGallery.innerHTML = "";
+    const heroBtnEl = document.getElementById("projectTabooHeroBtn");
+    if (heroBtnEl) heroBtnEl.disabled = true;
+    const heroImg = document.getElementById("projectTabooHeroImg");
+    if (heroImg) {
+      heroImg.removeAttribute("src");
+      heroImg.alt = "";
+    }
+    const heroIntro = document.getElementById("projectTabooHeroIntro");
+    if (heroIntro) heroIntro.textContent = "";
+    const editorialInner = document.getElementById("projectTabooEditorial");
+    if (editorialInner) editorialInner.innerHTML = "";
+    const pullW = document.getElementById("projectTabooPullWrap");
+    const pullQ = document.getElementById("projectTabooPullQuote");
+    if (pullQ) pullQ.textContent = "";
+    if (pullW) pullW.hidden = true;
+    if (this.viewport) {
+      gsap.set(this.viewport, { visibility: "visible", pointerEvents: "auto" });
+    }
+  }
+  teardownModaScrollReveal() {
+    if (this._modaRevealIO) {
+      this._modaRevealIO.disconnect();
+      this._modaRevealIO = null;
+    }
+  }
+  setupModaScrollReveal() {
+    this.teardownModaScrollReveal();
+    const root = this.projectModaEl;
+    if (!root || root.hidden) return;
+    const cards = root.querySelectorAll(".project-moda__card");
+    const nodes = [...cards];
+    nodes.forEach((el, i) => {
+      el.classList.remove("is-inview");
+      el.style.setProperty(
+        "--reveal-delay",
+        `${Math.min(i * 0.042, 0.38)}s`
+      );
+    });
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((en) => {
+          if (en.isIntersecting) {
+            en.target.classList.add("is-inview");
+            io.unobserve(en.target);
+          }
+        });
+      },
+      { root, rootMargin: "0px 0px -5% 0px", threshold: 0.06 }
+    );
+    nodes.forEach((el) => io.observe(el));
+    this._modaRevealIO = io;
+  }
+  /**
+   * Galleria Moda: ritmo da rivista — doppie verticali, full, verticale hero, coppie orizzontali.
+   */
+  pickModaGalleryClassList(index) {
+    const base = [
+      { span: "s6", portrait: true },
+      { span: "s6", portrait: true },
+      { span: "s12", portrait: false },
+      { span: "s12", portrait: true },
+      { span: "s6", portrait: false },
+      { span: "s6", portrait: false },
+      { span: "s6", portrait: true },
+      { span: "s6", portrait: true },
+      { span: "s12", portrait: false },
+      { span: "s12", portrait: true }
+    ];
+    const spec = base[index % base.length];
+    let cls = `project-moda__card--${spec.span}`;
+    if (spec.portrait) cls += " project-moda__card--portrait";
+    return cls;
+  }
+  appendModaGalleryCard(galleryEl, entry, spanClasses, itemIndex) {
+    if (!galleryEl || !entry) return;
+    const cfg =
+      (typeof window !== "undefined" && window.__PORTFOLIO_CONFIG__) || {};
+    const driveImages = cfg.imagesFrom === "drive";
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = `project-moda__card ${spanClasses}`;
+    const img = document.createElement("img");
+    img.decoding = "async";
+    if (driveImages) img.referrerPolicy = "no-referrer";
+    const slides = this.buildSlideshowSlides(entry);
+    const slide0 = slides[0];
+    img.src = slide0.url;
+    img.alt = slide0.alt;
+    img.loading = itemIndex < 5 ? "eager" : "lazy";
+    btn.appendChild(img);
+    galleryEl.appendChild(btn);
+    const itemData = {
+      element: btn,
+      img,
+      slideViewport: btn,
+      slideTrack: null,
+      slideshowSlides: slides,
+      currentSlideIndex: 0,
+      slideDelay: null,
+      slideTween: null,
+      slideshowPaused: true,
+      slidePauseMul: 1,
+      slideSpeedMul: 1,
+      slideChaos: 0,
+      slideshowResumeStaggerDone: true,
+      driftTween: null,
+      driftDelay: null,
+      driftSuspended: true,
+      driftFormationIdle: true,
+      driftGridX: 0,
+      driftGridY: 0,
+      row: 0,
+      col: 0,
+      spanCols: 1,
+      spanRows: 1,
+      baseX: 0,
+      baseY: 0,
+      imageUrl: slide0.url,
+      fullImageUrl: slide0.fullImageUrl,
+      index: itemIndex,
+      overlayMeta: this.buildOverlayMeta(
+        slide0.catalogEntry ||
+          (entry.type === "remote"
+            ? {
+                type: "remote",
+                overlayIndex:
+                  slide0.overlayIndex ?? entry.overlayIndex ?? itemIndex
+              }
+            : entry)
+      )
+    };
+    this.gridItems.push(itemData);
+  }
+  buildProjectModaView() {
+    const root = this.projectModaEl;
+    const galleryEl = this.projectModaGallery;
+    const heroImg = document.getElementById("projectModaHeroImg");
+    const heroBtn = document.getElementById("projectModaHeroBtn");
+    if (!root || !galleryEl || !heroImg) return;
+
+    this.teardownModaScrollReveal();
+    this.gridContainer.innerHTML = "";
+    this.gridItems = [];
+    this.modaHeroItemData = null;
+    if (heroBtn) heroBtn.disabled = true;
+
+    const rawItems = this.getDisplayItemsForGrid();
+    const entries = [...rawItems].sort(
+      (a, b) => (a.indexInProject ?? 0) - (b.indexInProject ?? 0)
+    );
+    const rec = this.getActiveProjectRecord();
+    const pid = entries[0]?.projectId;
+    const ord = pid != null ? this.projectOrdinalInPortfolio(pid) : 1;
+
+    let heroIdx = 0;
+    const heroFile = rec && rec.heroImage;
+    if (heroFile) {
+      const hi = entries.findIndex(
+        (e) => String(e.file || "") === String(heroFile)
+      );
+      if (hi >= 0) heroIdx = hi;
+    }
+
+    const heroEntry = entries[heroIdx] || entries[0];
+    const cfg =
+      (typeof window !== "undefined" && window.__PORTFOLIO_CONFIG__) || {};
+    const driveImages = cfg.imagesFrom === "drive";
+    heroImg.decoding = "async";
+    if (driveImages) heroImg.referrerPolicy = "no-referrer";
+    if (heroEntry) {
+      const slidesH = this.buildSlideshowSlides(heroEntry);
+      const sh0 = slidesH[0];
+      if (sh0) {
+        heroImg.src = sh0.url;
+        heroImg.alt = sh0.alt || "";
+        if (heroBtn) {
+          heroBtn.disabled = false;
+          this.modaHeroItemData = {
+            element: heroBtn,
+            img: heroImg,
+            slideViewport: heroBtn,
+            slideTrack: null,
+            slideshowSlides: slidesH,
+            currentSlideIndex: 0,
+            slideDelay: null,
+            slideTween: null,
+            slideshowPaused: true,
+            slidePauseMul: 1,
+            slideSpeedMul: 1,
+            slideChaos: 0,
+            slideshowResumeStaggerDone: true,
+            driftTween: null,
+            driftDelay: null,
+            driftSuspended: true,
+            driftFormationIdle: true,
+            driftGridX: 0,
+            driftGridY: 0,
+            row: 0,
+            col: 0,
+            spanCols: 1,
+            spanRows: 1,
+            baseX: 0,
+            baseY: 0,
+            imageUrl: sh0.url,
+            fullImageUrl: sh0.fullImageUrl,
+            index: -1,
+            overlayMeta: this.buildOverlayMeta(
+              sh0.catalogEntry ||
+                (heroEntry.type === "remote"
+                  ? {
+                      type: "remote",
+                      overlayIndex:
+                        sh0.overlayIndex ?? heroEntry.overlayIndex ?? 0
+                    }
+                  : heroEntry)
+            )
+          };
+          this.gridItems.push(this.modaHeroItemData);
+        }
+      } else {
+        heroImg.removeAttribute("src");
+        heroImg.alt = "";
+      }
+    } else {
+      heroImg.removeAttribute("src");
+      heroImg.alt = "";
+    }
+
+    const eyebrowEl = document.getElementById("projectModaEyebrow");
+    if (eyebrowEl) {
+      const label =
+        rec && rec.modaProjectLabel && String(rec.modaProjectLabel).trim();
+      eyebrowEl.textContent =
+        label || `PROJECT ${String(ord).padStart(2, "0")}`;
+    }
+    const titleEl = document.getElementById("projectModaTitle");
+    if (titleEl) titleEl.textContent = (rec && rec.title) || "";
+    const introEl = document.getElementById("projectModaHeroIntro");
+    if (introEl) {
+      const custom =
+        rec && rec.modaHeroIntro && String(rec.modaHeroIntro).trim();
+      introEl.textContent =
+        custom ||
+        "Shooting editoriale tra il 2022 e il 2023: set da corso di fotografia di moda, luce e silhouette al centro — spazio per esplorare stile e presenza.";
+    }
+
+    const editorialEl = document.getElementById("projectModaEditorial");
+    let editorialBlocks = [];
+    if (
+      rec &&
+      Array.isArray(rec.modaEditorialBlocks) &&
+      rec.modaEditorialBlocks.length
+    ) {
+      editorialBlocks = rec.modaEditorialBlocks
+        .map((s) => String(s).trim())
+        .filter(Boolean);
+    } else {
+      const summary = (rec && rec.summary && String(rec.summary).trim()) || "";
+      editorialBlocks = summary
+        ? summary
+            .split(/\n\n+/)
+            .map((s) => s.trim())
+            .filter(Boolean)
+        : [];
+    }
+    if (editorialEl) {
+      editorialEl.innerHTML = "";
+      const edRoles = [
+        "project-moda__ed-p--lead",
+        "project-moda__ed-p--note",
+        "project-moda__ed-p--outro"
+      ];
+      editorialBlocks.forEach((t, i) => {
+        const p = document.createElement("p");
+        p.className = "project-moda__ed-p";
+        if (edRoles[i]) p.classList.add(edRoles[i]);
+        p.textContent = t;
+        editorialEl.appendChild(p);
+      });
+    }
+
+    const pullWrap = document.getElementById("projectModaPullWrap");
+    const pullEl = document.getElementById("projectModaPullQuote");
+    const pullText =
+      rec && rec.modaPullQuote && String(rec.modaPullQuote).trim();
+    if (pullWrap && pullEl) {
+      if (pullText) {
+        pullEl.textContent = pullText;
+        pullWrap.hidden = false;
+      } else {
+        pullEl.textContent = "";
+        pullWrap.hidden = true;
+      }
+    }
+
+    galleryEl.innerHTML = "";
+    const galleryEntries =
+      entries.length <= 1 ? [] : entries.filter((_, i) => i !== heroIdx);
+    galleryEntries.forEach((entry, i) => {
+      const spanCls = this.pickModaGalleryClassList(i);
+      this.appendModaGalleryCard(galleryEl, entry, spanCls, i);
+    });
+
+    root.hidden = false;
+    root.removeAttribute("hidden");
+    root.setAttribute("aria-hidden", "false");
+    document.body.classList.add("project-moda-active");
+    if (this.viewport) {
+      gsap.set(this.viewport, { visibility: "hidden", pointerEvents: "none" });
+    }
+    this.setupModaScrollReveal();
+  }
+  teardownProjectModaView() {
+    this.teardownModaScrollReveal();
+    this.modaHeroItemData = null;
+    document.body.classList.remove("project-moda-active");
+    const root = this.projectModaEl;
+    if (root) {
+      root.hidden = true;
+      root.setAttribute("hidden", "");
+      root.setAttribute("aria-hidden", "true");
+    }
+    if (this.projectModaGallery) this.projectModaGallery.innerHTML = "";
+    const heroBtnEl = document.getElementById("projectModaHeroBtn");
+    if (heroBtnEl) heroBtnEl.disabled = true;
+    const heroImg = document.getElementById("projectModaHeroImg");
+    if (heroImg) {
+      heroImg.removeAttribute("src");
+      heroImg.alt = "";
+    }
+    const heroIntro = document.getElementById("projectModaHeroIntro");
+    if (heroIntro) heroIntro.textContent = "";
+    const editorialInner = document.getElementById("projectModaEditorial");
+    if (editorialInner) editorialInner.innerHTML = "";
+    const pullW = document.getElementById("projectModaPullWrap");
+    const pullQ = document.getElementById("projectModaPullQuote");
+    if (pullQ) pullQ.textContent = "";
+    if (pullW) pullW.hidden = true;
+    if (this.viewport) {
+      gsap.set(this.viewport, { visibility: "visible", pointerEvents: "auto" });
+    }
+  }
+  pickIsolaGallerySpan(index) {
+    /*
+     * Solo s12 / s6 / s4: righe complete con celle coerenti (no strisce sottili, no dense).
+     * Ritmo: apertura full → coppie 4:3 → terzine quadrate → full → …
+     */
+    const pattern = [
+      "project-isola__card--s12",
+      "project-isola__card--s6",
+      "project-isola__card--s6",
+      "project-isola__card--s4",
+      "project-isola__card--s4",
+      "project-isola__card--s4",
+      "project-isola__card--s12",
+      "project-isola__card--s6",
+      "project-isola__card--s6",
+      "project-isola__card--s4",
+      "project-isola__card--s4",
+      "project-isola__card--s4",
+      "project-isola__card--s12",
+      "project-isola__card--s6",
+      "project-isola__card--s6",
+      "project-isola__card--s12",
+      "project-isola__card--s4",
+      "project-isola__card--s4",
+      "project-isola__card--s4",
+      "project-isola__card--s6",
+      "project-isola__card--s6"
+    ];
+    return pattern[index % pattern.length];
+  }
+  appendIsolaGalleryCard(galleryEl, entry, spanClass, itemIndex) {
+    if (!galleryEl || !entry) return;
+    const cfg =
+      (typeof window !== "undefined" && window.__PORTFOLIO_CONFIG__) || {};
+    const driveImages = cfg.imagesFrom === "drive";
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = `project-isola__card ${spanClass}`;
+    const img = document.createElement("img");
+    img.decoding = "async";
+    if (driveImages) img.referrerPolicy = "no-referrer";
+    const slides = this.buildSlideshowSlides(entry);
+    const slide0 = slides[0];
+    img.src = slide0.url;
+    img.alt = slide0.alt;
+    img.loading = itemIndex < 4 ? "eager" : "lazy";
+    btn.appendChild(img);
+    galleryEl.appendChild(btn);
+    const itemData = {
+      element: btn,
+      img,
+      slideViewport: btn,
+      slideTrack: null,
+      slideshowSlides: slides,
+      currentSlideIndex: 0,
+      slideDelay: null,
+      slideTween: null,
+      slideshowPaused: true,
+      slidePauseMul: 1,
+      slideSpeedMul: 1,
+      slideChaos: 0,
+      slideshowResumeStaggerDone: true,
+      driftTween: null,
+      driftDelay: null,
+      driftSuspended: true,
+      driftFormationIdle: true,
+      driftGridX: 0,
+      driftGridY: 0,
+      row: 0,
+      col: 0,
+      spanCols: 1,
+      spanRows: 1,
+      baseX: 0,
+      baseY: 0,
+      imageUrl: slide0.url,
+      fullImageUrl: slide0.fullImageUrl,
+      index: itemIndex,
+      overlayMeta: this.buildOverlayMeta(
+        slide0.catalogEntry ||
+          (entry.type === "remote"
+            ? {
+                type: "remote",
+                overlayIndex:
+                  slide0.overlayIndex ?? entry.overlayIndex ?? itemIndex
+              }
+            : entry)
+      )
+    };
+    this.gridItems.push(itemData);
+  }
+  buildProjectIsolaView() {
+    const root = this.projectIsolaEl;
+    const galleryEl = this.projectIsolaGallery;
+    const heroImg = document.getElementById("projectIsolaHeroImg");
+    const heroBtn = document.getElementById("projectIsolaHeroBtn");
+    if (!root || !galleryEl || !heroImg) return;
+
+    this.teardownIsolaScrollReveal();
+    this.gridContainer.innerHTML = "";
+    this.gridItems = [];
+    this.isolaHeroItemData = null;
+    if (heroBtn) heroBtn.disabled = true;
+
+    const rawItems = this.getDisplayItemsForGrid();
+    const entries = [...rawItems].sort(
+      (a, b) => (a.indexInProject ?? 0) - (b.indexInProject ?? 0)
+    );
+    const rec = this.getActiveProjectRecord();
+    const pid = entries[0]?.projectId;
+    const ord = pid != null ? this.projectOrdinalInPortfolio(pid) : 1;
+
+    let heroIdx = 0;
+    const heroFile = rec && rec.heroImage;
+    if (heroFile) {
+      const hi = entries.findIndex(
+        (e) => String(e.file || "") === String(heroFile)
+      );
+      if (hi >= 0) heroIdx = hi;
+    } else {
+      const ci = entries.findIndex((e) =>
+        /copertina/i.test(String(e.file || ""))
+      );
+      if (ci >= 0) heroIdx = ci;
+    }
+
+    const heroEntry = entries[heroIdx] || entries[0];
+    const cfg =
+      (typeof window !== "undefined" && window.__PORTFOLIO_CONFIG__) || {};
+    const driveImages = cfg.imagesFrom === "drive";
+    heroImg.decoding = "async";
+    if (driveImages) heroImg.referrerPolicy = "no-referrer";
+    if (heroEntry) {
+      const slidesH = this.buildSlideshowSlides(heroEntry);
+      const sh0 = slidesH[0];
+      if (sh0) {
+        heroImg.src = sh0.url;
+        heroImg.alt = sh0.alt || "";
+        if (heroBtn) {
+          heroBtn.disabled = false;
+          this.isolaHeroItemData = {
+            element: heroBtn,
+            img: heroImg,
+            slideViewport: heroBtn,
+            slideTrack: null,
+            slideshowSlides: slidesH,
+            currentSlideIndex: 0,
+            slideDelay: null,
+            slideTween: null,
+            slideshowPaused: true,
+            slidePauseMul: 1,
+            slideSpeedMul: 1,
+            slideChaos: 0,
+            slideshowResumeStaggerDone: true,
+            driftTween: null,
+            driftDelay: null,
+            driftSuspended: true,
+            driftFormationIdle: true,
+            driftGridX: 0,
+            driftGridY: 0,
+            row: 0,
+            col: 0,
+            spanCols: 1,
+            spanRows: 1,
+            baseX: 0,
+            baseY: 0,
+            imageUrl: sh0.url,
+            fullImageUrl: sh0.fullImageUrl,
+            index: -1,
+            overlayMeta: this.buildOverlayMeta(
+              sh0.catalogEntry ||
+                (heroEntry.type === "remote"
+                  ? {
+                      type: "remote",
+                      overlayIndex:
+                        sh0.overlayIndex ?? heroEntry.overlayIndex ?? 0
+                    }
+                  : heroEntry)
+            )
+          };
+          this.gridItems.push(this.isolaHeroItemData);
+        }
+      } else {
+        heroImg.removeAttribute("src");
+        heroImg.alt = "";
+      }
+    } else {
+      heroImg.removeAttribute("src");
+      heroImg.alt = "";
+    }
+
+    const eyebrowEl = document.getElementById("projectIsolaEyebrow");
+    if (eyebrowEl) {
+      const label =
+        rec && rec.isolaProjectLabel && String(rec.isolaProjectLabel).trim();
+      eyebrowEl.textContent =
+        label || `PROJECT ${String(ord).padStart(2, "0")}`;
+    }
+    const titleEl = document.getElementById("projectIsolaTitle");
+    if (titleEl) titleEl.textContent = (rec && rec.title) || "";
+    const subEl = document.getElementById("projectIsolaSubtitle");
+    if (subEl) {
+      subEl.textContent = (rec && rec.subtitle) || "";
+      subEl.hidden = !rec?.subtitle;
+    }
+    const introEl = document.getElementById("projectIsolaHeroIntro");
+    if (introEl) {
+      const custom =
+        rec && rec.isolaHeroIntro && String(rec.isolaHeroIntro).trim();
+      introEl.textContent =
+        custom ||
+        "Sei mesi vissuti sull'isola, tra deserto e mare: un isolamento fatto di luce, vento e distese. Il paesaggio è la materia centrale del racconto; le figure, rare e volute, fanno parte di quella stessa materia — mai decoro sullo sfondo.";
+    }
+
+    const tagEl = document.getElementById("projectIsolaTagline");
+    if (tagEl) {
+      tagEl.textContent = "";
+      tagEl.hidden = true;
+    }
+
+    const edKickerEl = document.getElementById("projectIsolaEdKicker");
+    if (edKickerEl) {
+      const k =
+        rec && rec.isolaEdKicker && String(rec.isolaEdKicker).trim();
+      edKickerEl.textContent = k || "";
+      edKickerEl.hidden = !k;
+    }
+
+    const editorialEl = document.getElementById("projectIsolaEditorial");
+    let editorialBlocks = [];
+    if (
+      rec &&
+      Array.isArray(rec.isolaEditorialBlocks) &&
+      rec.isolaEditorialBlocks.length
+    ) {
+      editorialBlocks = rec.isolaEditorialBlocks
+        .map((s) => String(s).trim())
+        .filter(Boolean);
+    } else {
+      const fromIntro =
+        (rec &&
+          rec.isolaIntro &&
+          rec.isolaIntro
+            .split(/\n\n+/)
+            .map((s) => s.trim())
+            .filter(Boolean)) ||
+        [];
+      const fromBody =
+        (rec &&
+          Array.isArray(rec.isolaBodyParagraphs) &&
+          rec.isolaBodyParagraphs
+            .map((s) => String(s).trim())
+            .filter(Boolean)) ||
+        [];
+      editorialBlocks = [...fromIntro, ...fromBody].slice(0, 3);
+    }
+    if (editorialEl) {
+      editorialEl.innerHTML = "";
+      const edRoles = [
+        "project-isola__ed-p--lead",
+        "project-isola__ed-p--note",
+        "project-isola__ed-p--outro"
+      ];
+      editorialBlocks.forEach((t, i) => {
+        const p = document.createElement("p");
+        p.className = "project-isola__ed-p";
+        if (edRoles[i]) p.classList.add(edRoles[i]);
+        p.textContent = t;
+        editorialEl.appendChild(p);
+      });
+    }
+
+    const pullWrap = document.getElementById("projectIsolaPullWrap");
+    const pullEl = document.getElementById("projectIsolaPullQuote");
+    const pullText =
+      rec && rec.isolaPullQuote && String(rec.isolaPullQuote).trim();
+    if (pullWrap && pullEl) {
+      if (pullText) {
+        pullEl.textContent = pullText;
+        pullWrap.hidden = false;
+      } else {
+        pullEl.textContent = "";
+        pullWrap.hidden = true;
+      }
+    }
+
+    galleryEl.innerHTML = "";
+    const galleryEntries =
+      entries.length <= 1
+        ? []
+        : entries.filter((_, i) => i !== heroIdx);
+    galleryEntries.forEach((entry, i) => {
+      const span = this.pickIsolaGallerySpan(i);
+      this.appendIsolaGalleryCard(galleryEl, entry, span, i);
+    });
+
+    root.hidden = false;
+    root.removeAttribute("hidden");
+    root.setAttribute("aria-hidden", "false");
+    document.body.classList.add("project-isola-active");
+    if (this.viewport) {
+      gsap.set(this.viewport, { visibility: "hidden", pointerEvents: "none" });
+    }
+    this.setupIsolaScrollReveal();
+  }
+  teardownProjectIsolaView() {
+    this.teardownIsolaScrollReveal();
+    this.isolaHeroItemData = null;
+    document.body.classList.remove("project-isola-active");
+    const root = this.projectIsolaEl;
+    if (root) {
+      root.hidden = true;
+      root.setAttribute("hidden", "");
+      root.setAttribute("aria-hidden", "true");
+    }
+    if (this.projectIsolaGallery) this.projectIsolaGallery.innerHTML = "";
+    const heroBtnEl = document.getElementById("projectIsolaHeroBtn");
+    if (heroBtnEl) heroBtnEl.disabled = true;
+    const heroImg = document.getElementById("projectIsolaHeroImg");
+    if (heroImg) {
+      heroImg.removeAttribute("src");
+      heroImg.alt = "";
+    }
+    const heroIntro = document.getElementById("projectIsolaHeroIntro");
+    if (heroIntro) heroIntro.textContent = "";
+    const editorialInner = document.getElementById("projectIsolaEditorial");
+    if (editorialInner) editorialInner.innerHTML = "";
+    const pullW = document.getElementById("projectIsolaPullWrap");
+    if (pullW) pullW.hidden = true;
     if (this.viewport) {
       gsap.set(this.viewport, { visibility: "visible", pointerEvents: "auto" });
     }
@@ -1852,18 +4802,29 @@ class FashionGallery {
     document.body.classList.add("project-horizontal-active");
     gsap.set(this.viewport, { visibility: "hidden", pointerEvents: "none" });
 
+    const eyebrowEl = document.getElementById("projectHorizontalEyebrow");
     const kickerEl = document.getElementById("projectHorizontalKicker");
     const titleEl = document.getElementById("projectHorizontalTitle");
-    const summaryEl = document.getElementById("projectHorizontalSummary");
+    const articleEl = document.getElementById("projectHorizontalArticle");
     const rec = this.getActiveProjectRecord();
     const pid = entries[0]?.projectId;
     const ord = pid != null ? this.projectOrdinalInPortfolio(pid) : 3;
-    if (kickerEl) kickerEl.textContent = `N.${ord}`;
+    if (eyebrowEl) eyebrowEl.textContent = "Serie";
+    if (kickerEl) {
+      kickerEl.textContent = `Progetto ${String(ord).padStart(2, "0")}`;
+    }
     if (titleEl) titleEl.textContent = rec?.title || "";
-    if (summaryEl) {
-      const s = pid != null ? this.getProjectSummaryText(pid) : "";
-      summaryEl.textContent = s;
-      summaryEl.hidden = !s;
+    const paras =
+      pid != null ? this.getProjectSummaryParagraphs(pid) : [];
+    if (articleEl) {
+      articleEl.innerHTML = "";
+      paras.forEach((text, i) => {
+        const p = document.createElement("p");
+        p.className = "project-h__p";
+        p.style.setProperty("--reveal-delay", `${0.05 + i * 0.07}s`);
+        p.textContent = text;
+        articleEl.appendChild(p);
+      });
     }
 
     track.innerHTML = "";
@@ -1872,6 +4833,14 @@ class FashionGallery {
       const size = this.pickHorizontalMosaicSize(i, n);
       this.appendHorizontalCard(track, entry, size, i);
     });
+    track.querySelectorAll(".project-h-card").forEach((btn, i) => {
+      btn.style.setProperty(
+        "--reveal-delay",
+        `${0.08 + (paras.length + i) * 0.065}s`
+      );
+    });
+
+    this.setupProjectHorizontalScrollReveal();
   }
   isAboutOpen() {
     return document.body.classList.contains("about-open");
@@ -2043,7 +5012,16 @@ class FashionGallery {
 
     if (
       this.isProjectConceptLayoutActive() ||
-      this.isProjectHorizontalMixedActive()
+      this.isProjectHorizontalMixedActive() ||
+      this.isProjectIsolaLayoutActive() ||
+      this.isProjectParigiLayoutActive() ||
+      this.isProjectTabooLayoutActive() ||
+      this.isProjectModaLayoutActive() ||
+      this.isProjectModaJumpLayoutActive() ||
+      this.isProjectGallipoliFestivalLayoutActive() ||
+      this.isProjectGallipoliDayLayoutActive() ||
+      this.isProjectErniaLiveLayoutActive() ||
+      this.isProjectLaureaAlbumLayoutActive()
     ) {
       this.syncFilteredProjectGridState();
       this.gridItems.forEach((itemData) => {
@@ -2318,6 +5296,7 @@ class FashionGallery {
     });
   }
   queueNextFormationWave() {
+    if (!ENABLE_GRID_CARD_DRIFT) return;
     if (this.isProjectFilterActive()) return;
     if (this.zoomState.isActive) return;
     if (this.formationWaveTimer) {
@@ -2763,14 +5742,41 @@ class FashionGallery {
     const conceptLayout = this.isProjectConceptLayoutActive();
     const horizontalMixed = this.isProjectHorizontalMixedActive();
     const editorialLayout = this.isProjectEditorialLayoutActive();
+    const isolaLayout = this.isProjectIsolaLayoutActive();
+    const parigiLayout = this.isProjectParigiLayoutActive();
+    const tabooLayout = this.isProjectTabooLayoutActive();
+    const modaJumpLayout = this.isProjectModaJumpLayoutActive();
+    const gallipoliDayLayout = this.isProjectGallipoliDayLayoutActive();
+    const gallipoliFestivalLayout = this.isProjectGallipoliFestivalLayoutActive();
+    const erniaLiveLayout = this.isProjectErniaLiveLayoutActive();
+    const laureaAlbumLayout = this.isProjectLaureaAlbumLayoutActive();
+    const modaLayout = this.isProjectModaLayoutActive();
     if (!projectView) {
       this.teardownProjectConceptView();
       this.teardownProjectHorizontalView();
       this.teardownProjectEditorialView();
+      this.teardownProjectIsolaView();
+      this.teardownProjectParigiView();
+      this.teardownProjectTabooView();
+      this.teardownProjectModaJumpView();
+      this.teardownProjectGallipoliDayView();
+      this.teardownProjectGallipoliView();
+      this.teardownProjectErniaView();
+      this.teardownProjectLaureaView();
+      this.teardownProjectModaView();
     } else {
       if (!conceptLayout) this.teardownProjectConceptView();
       if (!horizontalMixed) this.teardownProjectHorizontalView();
       if (!editorialLayout) this.teardownProjectEditorialView();
+      if (!isolaLayout) this.teardownProjectIsolaView();
+      if (!parigiLayout) this.teardownProjectParigiView();
+      if (!tabooLayout) this.teardownProjectTabooView();
+      if (!modaJumpLayout) this.teardownProjectModaJumpView();
+      if (!gallipoliDayLayout) this.teardownProjectGallipoliDayView();
+      if (!gallipoliFestivalLayout) this.teardownProjectGallipoliView();
+      if (!erniaLiveLayout) this.teardownProjectErniaView();
+      if (!laureaAlbumLayout) this.teardownProjectLaureaView();
+      if (!modaLayout) this.teardownProjectModaView();
     }
     if (projectView && conceptLayout) {
       this.buildProjectConceptView();
@@ -2782,6 +5788,42 @@ class FashionGallery {
     }
     if (projectView && editorialLayout) {
       this.buildProjectEditorialView();
+      return;
+    }
+    if (projectView && isolaLayout) {
+      this.buildProjectIsolaView();
+      return;
+    }
+    if (projectView && parigiLayout) {
+      this.buildProjectParigiView();
+      return;
+    }
+    if (projectView && tabooLayout) {
+      this.buildProjectTabooView();
+      return;
+    }
+    if (projectView && modaJumpLayout) {
+      this.buildProjectModaJumpView();
+      return;
+    }
+    if (projectView && gallipoliDayLayout) {
+      this.buildProjectGallipoliDayView();
+      return;
+    }
+    if (projectView && gallipoliFestivalLayout) {
+      this.buildProjectGallipoliView();
+      return;
+    }
+    if (projectView && erniaLiveLayout) {
+      this.buildProjectErniaView();
+      return;
+    }
+    if (projectView && laureaAlbumLayout) {
+      this.buildProjectLaureaView();
+      return;
+    }
+    if (projectView && modaLayout) {
+      this.buildProjectModaView();
       return;
     }
     const rawItems = this.getDisplayItemsForGrid();
@@ -3207,31 +6249,9 @@ class FashionGallery {
     return overlay;
   }
   clearZoomTitleDescriptionRelax() {
-    if (this._zoomDescRelaxTimer) {
-      clearTimeout(this._zoomDescRelaxTimer);
-      this._zoomDescRelaxTimer = null;
-    }
     if (this.imageTitleOverlay) {
       this.imageTitleOverlay.classList.remove("image-title-overlay--relaxed");
     }
-  }
-  scheduleZoomTitleDescriptionRelax() {
-    if (this._zoomDescRelaxTimer) {
-      clearTimeout(this._zoomDescRelaxTimer);
-      this._zoomDescRelaxTimer = null;
-    }
-    if (!this.imageTitleOverlay) return;
-    const cfg =
-      (typeof window !== "undefined" && window.__PORTFOLIO_CONFIG__) || {};
-    const delay = Math.max(
-      1200,
-      Math.min(30000, Number(cfg.zoomDescriptionRelaxDelayMs) || 4500)
-    );
-    this._zoomDescRelaxTimer = setTimeout(() => {
-      this._zoomDescRelaxTimer = null;
-      if (!this.zoomState.isActive || !this.imageTitleOverlay) return;
-      this.imageTitleOverlay.classList.add("image-title-overlay--relaxed");
-    }, delay);
   }
   /** Dopo Flip.fit (o fallback fullscreen): titoli e overlay zoom. */
   completeZoomOpenUI(selectedItemData) {
@@ -3285,7 +6305,6 @@ class FashionGallery {
       });
     }
     this.preloadZoomNeighborImages(selectedItemData);
-    this.scheduleZoomTitleDescriptionRelax();
   }
   /** Item della vista corrente su cui ha senso avanzare nello zoom (ordine di griglia / serie). */
   getZoomNavigableGridItems() {
@@ -3350,7 +6369,6 @@ class FashionGallery {
         }
       );
     }
-    this.scheduleZoomTitleDescriptionRelax();
   }
   clearZoomOverlayHoldBackground(overlayEl) {
     if (!overlayEl || !overlayEl.style) return;
@@ -4139,6 +7157,15 @@ class FashionGallery {
     }
     if (this.isProjectConceptLayoutActive()) return;
     if (this.isProjectHorizontalMixedActive()) return;
+    if (this.isProjectIsolaLayoutActive()) return;
+    if (this.isProjectParigiLayoutActive()) return;
+    if (this.isProjectTabooLayoutActive()) return;
+    if (this.isProjectModaJumpLayoutActive()) return;
+    if (this.isProjectGallipoliFestivalLayoutActive()) return;
+    if (this.isProjectGallipoliDayLayoutActive()) return;
+    if (this.isProjectErniaLiveLayoutActive()) return;
+    if (this.isProjectLaureaAlbumLayoutActive()) return;
+    if (this.isProjectModaLayoutActive()) return;
     this.calculateGridDimensions(this.config.currentGap);
     this.applyCanvasLayoutSizing();
     const vw = window.innerWidth;
@@ -4292,6 +7319,249 @@ class FashionGallery {
         if (
           !card ||
           !this.projectEditorialEl.contains(card)
+        ) {
+          return;
+        }
+        const itemData = this.gridItems.find((g) => g.element === card);
+        if (!itemData) return;
+        e.preventDefault();
+        this.enterZoomMode(itemData);
+      });
+    }
+
+    if (this.projectIsolaEl) {
+      this.projectIsolaEl.addEventListener("click", (e) => {
+        if (!this.isProjectIsolaLayoutActive()) return;
+        if (this.zoomState.isActive || this.isAboutOpen()) return;
+        const heroHit = e.target.closest("#projectIsolaHeroBtn");
+        if (heroHit && this.projectIsolaEl.contains(heroHit)) {
+          e.preventDefault();
+          if (this.isolaHeroItemData) {
+            this.enterZoomMode(this.isolaHeroItemData);
+          }
+          return;
+        }
+        const card = e.target.closest(".project-isola__card");
+        if (
+          !card ||
+          !this.projectIsolaGallery ||
+          !this.projectIsolaGallery.contains(card)
+        ) {
+          return;
+        }
+        const itemData = this.gridItems.find((g) => g.element === card);
+        if (!itemData) return;
+        e.preventDefault();
+        this.enterZoomMode(itemData);
+      });
+    }
+
+    if (this.projectParigiEl) {
+      this.projectParigiEl.addEventListener("click", (e) => {
+        if (!this.isProjectParigiLayoutActive()) return;
+        if (this.zoomState.isActive || this.isAboutOpen()) return;
+        const heroHit = e.target.closest("#projectParigiHeroBtn");
+        if (heroHit && this.projectParigiEl.contains(heroHit)) {
+          e.preventDefault();
+          if (this.parigiHeroItemData) {
+            this.enterZoomMode(this.parigiHeroItemData);
+          }
+          return;
+        }
+        const card = e.target.closest(".project-parigi__card");
+        if (
+          !card ||
+          !this.projectParigiGallery ||
+          !this.projectParigiGallery.contains(card)
+        ) {
+          return;
+        }
+        const itemData = this.gridItems.find((g) => g.element === card);
+        if (!itemData) return;
+        e.preventDefault();
+        this.enterZoomMode(itemData);
+      });
+    }
+
+    if (this.projectModaJumpEl) {
+      this.projectModaJumpEl.addEventListener("click", (e) => {
+        if (!this.isProjectModaJumpLayoutActive()) return;
+        if (this.zoomState.isActive || this.isAboutOpen()) return;
+        const heroHit = e.target.closest("#projectModaJumpHeroBtn");
+        if (heroHit && this.projectModaJumpEl.contains(heroHit)) {
+          e.preventDefault();
+          if (this.modaJumpHeroItemData) {
+            this.enterZoomMode(this.modaJumpHeroItemData);
+          }
+          return;
+        }
+        const card = e.target.closest(".project-moda-jump__card");
+        if (
+          !card ||
+          !this.projectModaJumpGallery ||
+          !this.projectModaJumpGallery.contains(card)
+        ) {
+          return;
+        }
+        const itemData = this.gridItems.find((g) => g.element === card);
+        if (!itemData) return;
+        e.preventDefault();
+        this.enterZoomMode(itemData);
+      });
+    }
+
+    if (this.projectGallipoliDayEl) {
+      this.projectGallipoliDayEl.addEventListener("click", (e) => {
+        if (!this.isProjectGallipoliDayLayoutActive()) return;
+        if (this.zoomState.isActive || this.isAboutOpen()) return;
+        const heroHit = e.target.closest("#projectGallipoliDayHeroBtn");
+        if (heroHit && this.projectGallipoliDayEl.contains(heroHit)) {
+          e.preventDefault();
+          if (this.gallipoliDayHeroItemData) {
+            this.enterZoomMode(this.gallipoliDayHeroItemData);
+          }
+          return;
+        }
+        const card = e.target.closest(".project-gallipoli-day__card");
+        if (
+          !card ||
+          !this.projectGallipoliDayGallery ||
+          !this.projectGallipoliDayGallery.contains(card)
+        ) {
+          return;
+        }
+        const itemData = this.gridItems.find((g) => g.element === card);
+        if (!itemData) return;
+        e.preventDefault();
+        this.enterZoomMode(itemData);
+      });
+    }
+
+    if (this.projectGallipoliEl) {
+      this.projectGallipoliEl.addEventListener("click", (e) => {
+        if (!this.isProjectGallipoliFestivalLayoutActive()) return;
+        if (this.zoomState.isActive || this.isAboutOpen()) return;
+        const heroHit = e.target.closest("#projectGallipoliHeroBtn");
+        if (heroHit && this.projectGallipoliEl.contains(heroHit)) {
+          e.preventDefault();
+          if (this.gallipoliHeroItemData) {
+            this.enterZoomMode(this.gallipoliHeroItemData);
+          }
+          return;
+        }
+        const card = e.target.closest(".project-gallipoli__card");
+        if (
+          !card ||
+          !this.projectGallipoliGallery ||
+          !this.projectGallipoliGallery.contains(card)
+        ) {
+          return;
+        }
+        const itemData = this.gridItems.find((g) => g.element === card);
+        if (!itemData) return;
+        e.preventDefault();
+        this.enterZoomMode(itemData);
+      });
+    }
+
+    if (this.projectErniaEl) {
+      this.projectErniaEl.addEventListener("click", (e) => {
+        if (!this.isProjectErniaLiveLayoutActive()) return;
+        if (this.zoomState.isActive || this.isAboutOpen()) return;
+        const heroHit = e.target.closest("#projectErniaHeroBtn");
+        if (heroHit && this.projectErniaEl.contains(heroHit)) {
+          e.preventDefault();
+          if (this.erniaHeroItemData) {
+            this.enterZoomMode(this.erniaHeroItemData);
+          }
+          return;
+        }
+        const card = e.target.closest(".project-ernia__card");
+        if (
+          !card ||
+          !this.projectErniaGallery ||
+          !this.projectErniaGallery.contains(card)
+        ) {
+          return;
+        }
+        const itemData = this.gridItems.find((g) => g.element === card);
+        if (!itemData) return;
+        e.preventDefault();
+        this.enterZoomMode(itemData);
+      });
+    }
+
+    if (this.projectLaureaEl) {
+      this.projectLaureaEl.addEventListener("click", (e) => {
+        if (!this.isProjectLaureaAlbumLayoutActive()) return;
+        if (this.zoomState.isActive || this.isAboutOpen()) return;
+        const heroHit = e.target.closest("#projectLaureaHeroBtn");
+        if (heroHit && this.projectLaureaEl.contains(heroHit)) {
+          e.preventDefault();
+          if (this.laureaHeroItemData) {
+            this.enterZoomMode(this.laureaHeroItemData);
+          }
+          return;
+        }
+        const card = e.target.closest(".project-laurea__card");
+        if (
+          !card ||
+          !this.projectLaureaGallery ||
+          !this.projectLaureaGallery.contains(card)
+        ) {
+          return;
+        }
+        const itemData = this.gridItems.find((g) => g.element === card);
+        if (!itemData) return;
+        e.preventDefault();
+        this.enterZoomMode(itemData);
+      });
+    }
+
+    if (this.projectTabooEl) {
+      this.projectTabooEl.addEventListener("click", (e) => {
+        if (!this.isProjectTabooLayoutActive()) return;
+        if (this.zoomState.isActive || this.isAboutOpen()) return;
+        const heroHit = e.target.closest("#projectTabooHeroBtn");
+        if (heroHit && this.projectTabooEl.contains(heroHit)) {
+          e.preventDefault();
+          if (this.tabooHeroItemData) {
+            this.enterZoomMode(this.tabooHeroItemData);
+          }
+          return;
+        }
+        const card = e.target.closest(".project-taboo__card");
+        if (
+          !card ||
+          !this.projectTabooGallery ||
+          !this.projectTabooGallery.contains(card)
+        ) {
+          return;
+        }
+        const itemData = this.gridItems.find((g) => g.element === card);
+        if (!itemData) return;
+        e.preventDefault();
+        this.enterZoomMode(itemData);
+      });
+    }
+
+    if (this.projectModaEl) {
+      this.projectModaEl.addEventListener("click", (e) => {
+        if (!this.isProjectModaLayoutActive()) return;
+        if (this.zoomState.isActive || this.isAboutOpen()) return;
+        const heroHit = e.target.closest("#projectModaHeroBtn");
+        if (heroHit && this.projectModaEl.contains(heroHit)) {
+          e.preventDefault();
+          if (this.modaHeroItemData) {
+            this.enterZoomMode(this.modaHeroItemData);
+          }
+          return;
+        }
+        const card = e.target.closest(".project-moda__card");
+        if (
+          !card ||
+          !this.projectModaGallery ||
+          !this.projectModaGallery.contains(card)
         ) {
           return;
         }
@@ -4464,6 +7734,8 @@ async function loadPortfolioDriveManifest() {
   if (!data.projects || !Array.isArray(data.projects)) {
     throw new Error("Manifest Drive: manca projects[]");
   }
+  /* Merge: il JSON Drive sovrascrive i data.js locali. Usa __PORTFOLIO_LAYOUT_PATCH_BY_ID__
+   * (portfolio-config.js) per ripristinare layout/testi non presenti sul manifest (es. l-isola → layout "isola"). */
   const patchMap =
     (typeof window !== "undefined" && window.__PORTFOLIO_LAYOUT_PATCH_BY_ID__) ||
     {};

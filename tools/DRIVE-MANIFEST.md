@@ -21,7 +21,7 @@ Il sito, all’avvio, scarica il JSON con tutti i `driveId` e imposta `imagesFro
 
 ### Griglia Drive + zoom da file locali (`media/`)
 
-Se nel manifest ogni immagine include anche il nome file (`images: [{ driveId, file: "nome.jpg" }, …]`, come nello script in `tools/`), puoi lasciare **`useLocalMediaForZoom: true`** in `portfolio-config.js`: la griglia usa le miniature Drive, lo zoom fullscreen carica **`media/projects/<folder progetto>/<stesso nome file>`** dal sito. In deploy vanno quindi pubblicate le cartelle `media/projects/...` con gli originali allineati ai nomi del manifest.
+Se nel manifest ogni immagine include anche il nome file (`images: [{ driveId, file: "nome.webp" }, …]`, come nello script in `tools/`), puoi lasciare **`useLocalMediaForZoom: true`** in `portfolio-config.js`: la griglia usa le miniature Drive, lo zoom fullscreen carica **`media/projects/<folder progetto>/<stesso nome file>`** dal sito. In deploy vanno quindi pubblicate le cartelle `media/projects/...` con gli originali allineati ai nomi del manifest.
 
 ### Permessi
 

@@ -12,8 +12,10 @@ Le serie sono raggruppate per **categoria** (come nel menu Progetti), con slug d
 Ogni serie ha una cartella **`portfolio/projects/<categoria>/<id>/`** (lo `id` coincide con `id` nel menu e nei dati).
 
 - **`data.js`** — definizione del progetto (titolo, cartella `media/`, immagini, `layout`, `summary`, …). Viene caricato prima di `projects-registry.js`.
-  - **`layout`** — opzionale: `concept` (Anca & Edward), `horizontal-mixed` (NUDE), **`editorial`** (pagina con titolo grande + testo + galleria ai lati / sotto su mobile).
+  - **`layout`** — opzionale: `concept` (Anca & Edward), `horizontal-mixed` (NUDE), **`editorial`** (pagina con titolo grande + testo + galleria ai lati / sotto su mobile), **`isola`** (L'isola: hero full-bleed + testo editoriale + galleria a ritmo, vedi `project-lisola.css`).
+  - Campi solo **`isola`**: **`subtitle`**, **`heroImage`** (nome file in `images`), **`isolaProjectLabel`** (opzionale, es. `PROJECT 04`; se vuoto → `PROJECT` + numero d’ordine a due cifre), **`isolaEdKicker`** (opzionale, sopra i blocchi), **`isolaTagline`** (una riga sotto il titolo in hero), **`isolaEditorialBlocks`** (array di **3** stringhe — corpo editoriale), **`isolaPullQuote`** (citazione breve tra testo e galleria). Per compatibilità restano supportati **`isolaIntro`** + **`isolaBodyParagraphs`** (max 3 paragrafi uniti) se `isolaEditorialBlocks` manca.
   - **`summary`** — testo mostrato nella vista serie (blurb griglia / intestazioni). Se vuoto, si può usare **`blurb`** come ripiego breve. Due a capo consecutivi nel testo creano paragrafi separati (`<p>`).
+  - **`summaryParagraphs`** *(opzionale, array di stringhe)* — per progetti **`horizontal-mixed`** (es. NUDE): paragrafi nella colonna testo; `getProjectSummaryText` li unisce per la griglia / blurbs.
   - **`blurbSpanRows`** *(opzionale, numero ≥ 2)* — altezza in celle della fascia testo in vista progetto (default 2); utile per testi lunghi su desktop.
 - **`mobile.css`** *(opzionale)* — stili solo su mobile quando quella serie è attiva. Caricato automaticamente da `script-shared.js` tramite `__PORTFOLIO_PROJECT_PATH_BY_ID__` (404 se assente: nessun problema).
 
@@ -25,7 +27,7 @@ Il browser **decodifica l’intero JPEG** anche se la cella in griglia è piccol
 
 - Esporta per il web (lato lungo indicativamente **1600–2200 px**, qualità ~75–82) oppure tieni gli originali ma aggiungi **miniature** usate solo in griglia / editoriale:
   - In **`portfolio/portfolio-config.js`**, imposta `localThumbnailSubfolder: "thumbs"` e crea `media/projects/<NomeCartella>/thumbs/` con **gli stessi nomi file** dell’array `images` (JPEG leggeri). Lo **zoom** continuerà a usare i file nella cartella principale (`fullImageUrl`).
-  - In alternativa, in `data.js`: `images: [{ file: "01.jpg", thumb: "previews/01.jpg" }, …]`.
+  - In alternativa, in `data.js`: `images: [{ file: "01.webp", thumb: "previews/01.webp" }, …]`.
 - **`gridImageEagerCount`** (default `14`): solo le prime N celle foto usano `loading="eager"`, le altre `lazy`, per non avviare decine di caricamenti insieme.
 
 Per **nuovo progetto**:

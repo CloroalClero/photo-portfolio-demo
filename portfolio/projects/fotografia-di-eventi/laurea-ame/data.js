@@ -5,18 +5,27 @@
   R.push({
   "id": "laurea-ame",
   "folder": "Laurea-ame",
-  "title": "LAUREE",
-  "summary": "La giornata della laurea.",
+  "title": "Laurea – Ame",
+  "layout": "laureaAlbum",
+  "summary": "Un giorno misurato su attese brevi, abbracci e piccole attenzioni — il traguardo condiviso con chi conta.",
+  "heroImage": "23_laurea-ame.webp",
+  "laureaProjectLabel": "PROJECT 12",
+  "laureaHeroTagline": "Un passaggio semplice, custodito tra ritratti e gesti — memoria della giornata, senza rumore in più.",
+  "laureaEditorialBlocks": [
+    "La laurea è anche un ritmo: file in attesa, nomi che scorrono, qualche risata nervosa prima dell’uscita in cortile.",
+    "Ho cercato di restare vicina a gesti veri — mani che stringono, sguardi che si incrociano, la calma tra un flash e l’altro.",
+    "Niente da dimostrare: solo il peso leggero di un traguardo vissuto in famiglia, con la giornata che scivola verso casa."
+  ],
   "images": [
-    "02_laurea-ame.jpg",
-    "14_laurea-ame.jpg",
-    "17_laurea-ame.jpg",
-    "23_laurea-ame.jpg",
-    "43_laurea-ame.jpg",
-    "48_laurea-ame.jpg",
-    "49_laurea-ame.jpg",
-    "50_laurea-ame.jpg",
-    "52_laurea-ame.jpg"
+    "02_laurea-ame.webp",
+    "14_laurea-ame.webp",
+    "17_laurea-ame.webp",
+    "23_laurea-ame.webp",
+    "43_laurea-ame.webp",
+    "48_laurea-ame.webp",
+    "49_laurea-ame.webp",
+    "50_laurea-ame.webp",
+    "52_laurea-ame.webp"
   ]
 });
 })(window);

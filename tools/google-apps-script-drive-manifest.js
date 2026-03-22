@@ -20,15 +20,15 @@ var PROJECT_META = [
   { match: "Binge-drinking", id: "binge-drinking", folder: "Binge-drinking", title: "BINGE DRINKING" },
   { match: "Nude", id: "nude", folder: "Nude", title: "NUDE" },
   { match: "L'isola", id: "l-isola", folder: "L'isola", title: "L'ISOLA" },
-  { match: "parigi", id: "parigi", folder: "parigi", title: "PARIS" },
-  { match: "taboo-shooting", id: "taboo-shooting", folder: "taboo-shooting", title: "TABOO SHOOTING" },
-  { match: "Moda-shooting", id: "moda-shooting", folder: "Moda-shooting", title: "FASHION" },
-  { match: "Moda_jump", id: "moda-jump", folder: "Moda_jump", title: "JUMP" },
-  { match: "Gallipoli-day", id: "gallipoli-day", folder: "Gallipoli-day", title: "byDAY" },
-  { match: "Gallipoli-night", id: "gallipoli-night", folder: "Gallipoli-night", title: "byNIGHT" },
+  { match: "parigi", id: "parigi", folder: "parigi", title: "Parigi" },
+  { match: "taboo-shooting", id: "taboo-shooting", folder: "taboo-shooting", title: "Taboo Shooting" },
+  { match: "Moda-shooting", id: "moda-shooting", folder: "Moda-shooting", title: "Moda Shooting" },
+  { match: "Moda_jump", id: "moda-jump", folder: "Moda_jump", title: "Moda Jump" },
+  { match: "Gallipoli-day", id: "gallipoli-day", folder: "Gallipoli-day", title: "Gallipoli – Giorno" },
+  { match: "Gallipoli-night", id: "gallipoli-night", folder: "Gallipoli-night", title: "Gallipoli - Notte" },
   { match: "DJ-set", id: "dj-set", folder: "DJ-set", title: "DJSET" },
-  { match: "concerti-ernia", id: "concerti-ernia", folder: "concerti-ernia", title: "CONCERTI" },
-  { match: "Laurea-ame", id: "laurea-ame", folder: "Laurea-ame", title: "LAUREE" },
+  { match: "concerti-ernia", id: "concerti-ernia", folder: "concerti-ernia", title: "Concerti – Ernia" },
+  { match: "Laurea-ame", id: "laurea-ame", folder: "Laurea-ame", title: "Laurea – Ame" },
   { match: "Anca-edward", id: "anca-edward", folder: "Anca-edward", title: "ANCA & EDWARD" }
 ];
 
