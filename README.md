@@ -98,7 +98,7 @@ codice pulito e modulare
 Michel Branche
 Frontend Developer & Creative
 
-Portfolio: https://devmichelbranche.netlify.app/
+Portfolio: https://devmichelbranche.vercel.app/
 GitHub: https://github.com/MichelBranche
 🔥 Extra
 
